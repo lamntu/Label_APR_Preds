@@ -1,0 +1,76 @@
+body {
+font-family: Arial;
+margin: 40px;
+}
+
+table.pred-list {
+border-collapse: collapse;
+}
+
+.pred-list  td,th {
+border: 1px solid #ccc;
+padding: 8px;
+}
+
+pre.field-box {
+    background: #f5f5f5;
+    padding: 10px;
+    white-space: pre-wrap;       /* Since CSS 2.1 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+
+/* Collapsible container */
+.collapsible {
+    background-color: #eee;
+    color: #444;
+    cursor: pointer;
+    padding: 8px 12px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 16px;
+}
+
+.collapsible:hover {
+    background-color: #ddd;
+}
+
+.content {
+    display: none;
+    overflow: hidden;
+}
+
+#explanation {
+    font-size: 14px;
+}
+
+/* Standard approach */
+select {
+  font-size: 20px; /* Changes the visible selected value and inherited option size */
+}
+
+option {
+  font-size: 20px; /* May be ignored by some browsers like Chrome/Safari */
+}
+
+/* Annotated rows: green */
+tr.annotated {
+    background-color: #d4edda; /* soft green */
+}
+
+tr.annotated td {
+    color: #155724; /* dark green text */
+}
+
+/* Optional hover effect */
+tr.annotated:hover {
+    background-color: #c3e6cb;
+}
+
+tr.pending:hover {
+    background-color: #f0f0f0; /* light gray */
+}

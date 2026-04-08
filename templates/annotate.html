@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/diff2html/bundles/css/diff2html.min.css">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.2.0/diff.min.js"></script>
+<!-- Include Prism CSS (light theme) -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+
+<!-- Include Prism JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<script src="/static/annotate.js"></script>
+
+<link rel="stylesheet" href="/static/style.css">
+
+</head>
+
+<body>
+
+<a href="/">← Back to list</a>
+
+<h2>Record {{bug_id}}</h2>
+
+<h3>Buggy Code</h3>
+<button type="button" class="collapsible">Show ▸</button>
+<div class="content">
+<pre><code class="language-java">{{buggy}}</code></pre>
+</div>
+
+<h3>Bug Info</h3>
+<!--<button type="button" class="collapsible">Show ▸</button>-->
+<!--<div class="content">-->
+<pre class="field-box" id="bug_info">{{bug_info}}</pre>
+<!--</div>-->
+
+<h3>LLM Explanation</h3>
+
+<pre class="field-box" id="explanation">{{explanation}}</pre>
+
+<h3>Developer Fix</h3>
+
+<div id="devdiff"></div>
+
+<h3>LLM Fix</h3>
+
+<button type="button" class="collapsible">Show ▸</button>
+<div class="content">
+<div id="llmdiff"></div>
+</div>
+
+<!--<br>-->
+<hr>
+
+<h3>
+<label>Trustworthiness</label>
+
+<select id="score" required>
+<!--<optgroup>-->
+<option value="1" {% if score == 1 %} selected {% endif %}>1</option>
+<option value="2" {% if score == 2 %} selected {% endif %}>2</option>
+<option value="3" {% if score == 3 %} selected {% endif %}>3</option>
+<option value="4" {% if score == 4 %} selected {% endif %}>4</option>
+<option value="5" {% if score == 5 %} selected {% endif %}>5</option>
+<!--</optgroup>-->
+</select>
+</h3>
+
+1 - strongly hallucinated, 5 - strongly correct
+
+<br><br>
+
+<h3>Note</h3>
+<textarea id="comment" rows="5" cols="80">{{comment}}</textarea>
+
+<br><br>
+
+<button onclick="submitLabel()">Save</button>
+
+<br><br>
+
+<a href="/">← Back to list</a>
+
+<script>
+
+let recordId = `{{idx}}`
+
+let buggy = `{{buggy | safe}}`
+let devfix = `{{dev_fix | safe}}`
+let llmfix = `{{llm_fix | safe}}`
+
+</script>
+
+</body>
+</html>

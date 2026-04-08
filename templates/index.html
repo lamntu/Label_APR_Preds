@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>LLM Trustworthiness Annotation</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<h1>LLM Prediction Dataset</h1>
+
+<p>
+Annotated: {{annotated}} / {{total}}
+</p>
+
+<table class="pred-list">
+
+<tr>
+<th>Index</th>
+<th>Bug-ID</th>
+<th>Dataset</th>
+<th>Model</th>
+<th>Status</th>
+<th>Open</th>
+</tr>
+
+{% for r in records %}
+
+<tr class="{% if r.annotated %}annotated{% else %}pending{% endif %}">
+
+<td>{{r.idx}}</td>
+<td>{{r.bug_id}}</td>
+<td>{{r.dataset}}</td>
+<td>{{r.model}}</td>
+
+<td>
+{% if r.annotated %}
+✔ Annotated
+{% else %}
+Pending...
+{% endif %}
+</td>
+
+<td>
+<a href="/annotate/{{r.idx}}">
+Open
+</a>
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+
+
+</body>
+</html>
