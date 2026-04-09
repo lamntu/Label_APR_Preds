@@ -2,6 +2,7 @@ import os
 
 import pandas as pd
 from flask import Flask, render_template, request, redirect, session
+from sheets import save_annotation, load_annotations
 
 app = Flask(__name__)
 app.secret_key = "annotation-secret"
@@ -13,20 +14,20 @@ ANNOTATION_DIR = "data"
 dataset = pd.read_csv(DATA_PATH)
 
 
-def get_annotation_path():
-    annotator = session.get("annotator")
-    return f"{ANNOTATION_DIR}/labels_{annotator}.csv"
-
-
-def reload_annotations():
-    path = get_annotation_path()
-
-    if os.path.exists(path):
-        annotations = pd.read_csv(path)
-    else:
-        annotations = pd.DataFrame(columns=["id", "score", "comment"])
-
-    return annotations
+# def get_annotation_path():
+#     annotator = session.get("annotator")
+#     return f"{ANNOTATION_DIR}/labels_{annotator}.csv"
+#
+#
+# def reload_annotations():
+#     path = get_annotation_path()
+#
+#     if os.path.exists(path):
+#         annotations = pd.read_csv(path)
+#     else:
+#         annotations = pd.DataFrame(columns=["id", "score", "comment"])
+#
+#     return annotations
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -45,8 +46,8 @@ def index():
     if "annotator" not in session:
         return redirect("/")
 
-    annotations = reload_annotations()
-    annotated_ids = set(annotations["id"].tolist())
+    annotations = load_annotations(session["annotator"])
+    annotated_ids = set([x['id'] for x in annotations])
 
     show_pending_only = session.get("show_pending_only", False)
 
@@ -90,15 +91,16 @@ def annotate(idx):
 
     row = dataset.iloc[idx]
 
-    annotations = reload_annotations()
-    existing = annotations[annotations["id"] == row["id"]]
+    annotations = load_annotations(session["annotator"])
+    existing = [x for x in annotations if x["id"] == row["id"]]
+    # annotations[annotations["id"] == row["id"]]
 
     score = 3
     comment = ""
 
     if len(existing) > 0:
-        score = existing.iloc[0]["score"]
-        comment = existing.iloc[0]["comment"]
+        score = existing[0]["score"]
+        comment = existing[0]["comment"]
         if not isinstance(comment, str) or comment == None:
             comment = ""
 
@@ -126,8 +128,8 @@ def annotate(idx):
 
 @app.route("/submit", methods=["POST"])
 def submit():
-    annotations = reload_annotations()
-    path = get_annotation_path()
+    # annotations = reload_annotations()
+    # path = get_annotation_path()
 
     data = request.json
     data["id"] = int(data["id"])
@@ -138,14 +140,21 @@ def submit():
         "comment": data["comment"]
     }])
 
-    if os.path.exists(path):
-        old = pd.read_csv(path)
-        old['id'] = old['id'].astype(int)
-        old = old.loc[old["id"] != data["id"]]
-        updated = pd.concat([old, new])
-        updated.to_csv(path, index=False)
-    else:
-        new.to_csv(path, index=False)
+    # if os.path.exists(path):
+    #     old = pd.read_csv(path)
+    #     old['id'] = old['id'].astype(int)
+    #     old = old.loc[old["id"] != data["id"]]
+    #     updated = pd.concat([old, new])
+    #     updated.to_csv(path, index=False)
+    # else:
+    #     new.to_csv(path, index=False)
+
+    save_annotation(
+        record_id=data["id"],
+        annotator=session["annotator"],
+        score=data["score"],
+        comment=data["comment"]
+    )
 
     return {"status": "saved"}
 
