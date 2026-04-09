@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Annotator Login</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<h2>Select Annotator</h2>
+
+
+<p>Stored results depend on the selected annotator</p>
+
+<form method="POST">
+
+<select name="annotator">
+
+{% for a in annotators %}
+<option value="{{a}}">{{a}}</option>
+{% endfor %}
+
+</select>
+
+<br><br>
+
+<button type="submit">Start</button>
+
+</form>
+
+</body>
+
+</html>
