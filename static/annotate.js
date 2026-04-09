@@ -2,6 +2,7 @@ window.onload = function() {
     // collapsible sections
     renderDiff(buggy, devfix, "devdiff")
     renderDiff(buggy, llmfix, "llmdiff")
+//    hljs.highlightAll()
 
     console.log("Page is fully loaded.");
     document.querySelectorAll(".collapsible").forEach(btn => {
@@ -19,6 +20,12 @@ window.onload = function() {
     });
 }
 
+function decodeHtml(html) {
+    var txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+}
+
 function renderDiff(oldCode, newCode, container) {
     let diff = newCode.startsWith("diff --git") ? newCode : Diff.createTwoFilesPatch(
         "Buggy",
@@ -27,6 +34,10 @@ function renderDiff(oldCode, newCode, container) {
         newCode
     )
 
+    diff = decodeHtml(diff)
+
+    console.log(diff)
+
     let html = Diff2Html.html(diff, {
         drawFileList: false,
         matching: "lines",
@@ -34,7 +45,6 @@ function renderDiff(oldCode, newCode, container) {
     })
 
     document.getElementById(container).innerHTML = html
-    hljs.highlightAll()
 }
 
 async function submitLabel() {

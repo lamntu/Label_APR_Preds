@@ -2,7 +2,7 @@
 <html>
 
 <head>
-<title>LLM Trustworthiness Annotation</title>
+<title>Welcome {{annotator}}!</title>
 <script src="/static/index.js"></script>
 <link rel="stylesheet" href="/static/style.css">
 </head>
@@ -14,7 +14,7 @@
 <h3>Annotator: {{annotator}}</h3>
 
 <p>
-Annotated: {{annotated}} / {{total}}
+Annotated: {{annotated}} / {{total}} ({{progress}}%)
 </p>
 
 <table class="pred-list">
@@ -31,8 +31,9 @@ Annotated: {{annotated}} / {{total}}
   <input type="checkbox" id="pendingToggle" onchange="togglePendingFilter()" {% if show_pending_only %}checked{% endif %}>
   <span class="slider"></span>
 </label>
-<span id="toggleLabel">Show Pending Only</span>
+<span id="toggleLabel">Pending Only</span>
 </th>
+<th>Label</th>
 <th>Open</th>
 </tr>
 </thead>
@@ -54,6 +55,8 @@ Annotated: {{annotated}} / {{total}}
 Pending...
 {% endif %}
 </td>
+
+<td><span class="badge-label label-shade-{{r.label}}">{{r.label}}</span></td>
 
 <td>
 <a href="/annotate/{{r.idx}}">
