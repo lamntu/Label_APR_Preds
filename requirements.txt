@@ -2,4 +2,5 @@ flask
 pandas
 datasets
 gspread
+gunicorn
 google-auth
