@@ -28,31 +28,32 @@ href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.m
 
 <body>
 
-<a href="/">← Back to list</a>
+<a href="/records">← Back to list</a>
 
-<h2>Record {{bug_id}}</h2>
+<h1>Record {{bug_id}}</h1>
+<h2>Annotator: {{annotator}}</h2>
 
-<h3>Buggy Code</h3>
+<h3>1. Buggy Code</h3>
 <button type="button" class="collapsible">Show ▸</button>
 <div class="content">
 <pre><code class="language-java">{{buggy}}</code></pre>
 </div>
 
-<h3>Bug Info</h3>
+<h3>2. Bug Info</h3>
 <!--<button type="button" class="collapsible">Show ▸</button>-->
 <!--<div class="content">-->
 <pre class="field-box" id="bug_info">{{bug_info}}</pre>
 <!--</div>-->
 
-<h3>LLM Explanation</h3>
+<h3>3. LLM Explanation</h3>
 
 <pre class="field-box" id="explanation">{{explanation}}</pre>
 
-<h3>Developer Fix</h3>
+<h3>4. Developer Fix</h3>
 
 <div id="devdiff"></div>
 
-<h3>LLM Fix</h3>
+<h3>5. LLM Fix</h3>
 
 <button type="button" class="collapsible">Show ▸</button>
 <div class="content">
@@ -63,7 +64,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.m
 <hr>
 
 <h3>
-<label>Trustworthiness</label>
+<label>6. Trustworthiness</label>
 
 <select id="score" required>
 <!--<optgroup>-->
@@ -78,9 +79,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.m
 
 1 - strongly hallucinated, 5 - strongly correct
 
-<br><br>
+<br>
 
-<h3>Note</h3>
+<h4>Note</h4>
 <textarea id="comment" rows="5" cols="80">{{comment}}</textarea>
 
 <br><br>
@@ -89,7 +90,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.m
 
 <br><br>
 
-<a href="/">← Back to list</a>
+<a href="/records">← Back to list</a>
 
 <script>
 

@@ -3,6 +3,7 @@
 
 <head>
 <title>LLM Trustworthiness Annotation</title>
+<script src="/static/index.js"></script>
 <link rel="stylesheet" href="/static/style.css">
 </head>
 
@@ -10,26 +11,38 @@
 
 <h1>LLM Prediction Dataset</h1>
 
+<h3>Annotator: {{annotator}}</h3>
+
 <p>
 Annotated: {{annotated}} / {{total}}
 </p>
 
 <table class="pred-list">
 
+<thead>
 <tr>
-<th>Index</th>
+<th>#</th>
+<!--<th>Record-ID</th>-->
 <th>Bug-ID</th>
 <th>Dataset</th>
-<th>Model</th>
-<th>Status</th>
+<th>APR System</th>
+<th>Status
+<label class="switch">
+  <input type="checkbox" id="pendingToggle" onchange="togglePendingFilter()" {% if show_pending_only %}checked{% endif %}>
+  <span class="slider"></span>
+</label>
+<span id="toggleLabel">Show Pending Only</span>
+</th>
 <th>Open</th>
 </tr>
+</thead>
 
 {% for r in records %}
 
 <tr class="{% if r.annotated %}annotated{% else %}pending{% endif %}">
 
-<td>{{r.idx}}</td>
+<td>{{r.row_num}}</td>           <!--intentionally left blank-->
+<!--<td>{{r.idx}}</td>-->
 <td>{{r.bug_id}}</td>
 <td>{{r.dataset}}</td>
 <td>{{r.model}}</td>
@@ -53,8 +66,6 @@ Open
 {% endfor %}
 
 </table>
-
-
 
 </body>
 </html>

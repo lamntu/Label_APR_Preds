@@ -1,7 +1,7 @@
 window.onload = function() {
     // collapsible sections
-    renderDiff(buggy,devfix,"devdiff")
-    renderDiff(buggy,llmfix,"llmdiff")
+    renderDiff(buggy, devfix, "devdiff")
+    renderDiff(buggy, llmfix, "llmdiff")
 
     console.log("Page is fully loaded.");
     document.querySelectorAll(".collapsible").forEach(btn => {
@@ -19,48 +19,42 @@ window.onload = function() {
     });
 }
 
-function renderDiff(oldCode,newCode,container){
+function renderDiff(oldCode, newCode, container) {
+    let diff = newCode.startsWith("diff --git") ? newCode : Diff.createTwoFilesPatch(
+        "Buggy",
+        "Fixed",
+        oldCode,
+        newCode
+    )
 
-let diff = newCode.startsWith("diff --git") ? newCode : Diff.createTwoFilesPatch(
-"Buggy",
-"Fixed",
-oldCode,
-newCode
-)
+    let html = Diff2Html.html(diff, {
+        drawFileList: false,
+        matching: "lines",
+        outputFormat: "line-by-line"
+    })
 
-let html = Diff2Html.html(diff,{
-drawFileList:false,
-matching:"lines",
-outputFormat:"line-by-line"
-})
-
-document.getElementById(container).innerHTML = html
-
-hljs.highlightAll()
-
+    document.getElementById(container).innerHTML = html
+    hljs.highlightAll()
 }
 
-async function submitLabel(){
+async function submitLabel() {
+    let score = document.getElementById("score").value
+    let comment = document.getElementById("comment").value
 
-let score = document.getElementById("score").value
-let comment = document.getElementById("comment").value
+    await fetch("/submit", {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
 
-await fetch("/submit",{
+        body: JSON.stringify({
+            id: recordId,
+            score: score,
+            comment: comment
+        })
 
-method:"POST",
+    })
 
-headers:{
-'Content-Type':'application/json'
-},
-
-body:JSON.stringify({
-id:recordId,
-score:score,
-comment:comment
-})
-
-})
-
-alert("Saved!")
-window.location = '/';
+    alert("Saved!")
+    window.location = '/records';
 }
