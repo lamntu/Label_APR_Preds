@@ -146,23 +146,15 @@ padding: 0.15em 0.6em;
 border-radius: 1rem;
 }
 
-.label-shade-5 {
+.label-shade-correct {
     background-color: #11734b;
     color: white;
 }
-.label-shade-4 {
-    background-color: #d4edbc;
-    color: #11734b;
-}
-.label-shade-3 {
+.label-shade-unsure {
     background-color: #ffe5a0;
     color: black;
 }
-.label-shade-2 {
-    background-color: #ffcfc9;
-    color: #b10202;
-}
-.label-shade-1 {
+.label-shade-incorrect {
     background-color: #b10202;
     color: white;
 }

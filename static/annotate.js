@@ -48,7 +48,8 @@ function renderDiff(oldCode, newCode, container) {
 }
 
 async function submitLabel() {
-    let score = document.getElementById("score").value
+    let label = document.getElementById("label").value
+    let confidence = document.getElementById("confidence").value
     let comment = document.getElementById("comment").value
 
     await fetch("/submit", {
@@ -59,10 +60,10 @@ async function submitLabel() {
 
         body: JSON.stringify({
             id: recordId,
-            score: score,
+            label: label,
+            confidence: confidence,
             comment: comment
         })
-
     })
 
     alert("Saved!")

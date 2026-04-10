@@ -55,13 +55,14 @@
 <pre class="field-box" id="bug_info">{{bug_info}}</pre>
 <!--</div>-->
 
-<h3>3. LLM Explanation</h3>
+<h3>3. Developer Fix</h3>
+
+<div id="devdiff"></div>
+
+<h3>4. LLM Explanation</h3>
 
 <pre class="field-box" id="explanation">{{explanation}}</pre>
 
-<h3>4. Developer Fix</h3>
-
-<div id="devdiff"></div>
 
 <h3>5. LLM Fix</h3>
 
@@ -74,22 +75,30 @@
 <hr>
 
 <h3>
-<label>6. Trustworthiness</label>
+<label>6. Label</label>
 
-<select id="score" required>
+<select id="label" required>
 <!--<optgroup>-->
-<option value="1" {% if score == 1 %} selected {% endif %}>1</option>
-<option value="2" {% if score == 2 %} selected {% endif %}>2</option>
-<option value="3" {% if score == 3 %} selected {% endif %}>3</option>
-<option value="4" {% if score == 4 %} selected {% endif %}>4</option>
-<option value="5" {% if score == 5 %} selected {% endif %}>5</option>
+<option value="incorrect" {% if label == "incorrect" %} selected {% endif %}>incorrect</option>
+<option value="unsure" {% if label == "unsure" %} selected {% endif %}>unsure</option>
+<option value="correct" {% if label == "correct" %} selected {% endif %}>correct</option>
 <!--</optgroup>-->
 </select>
 </h3>
 
-1 - strongly hallucinated, 5 - strongly correct
+<h4>Your Confidence
+<select id="confidence" required>
+<!--<optgroup>-->
+<option value="1" {% if confidence == 1 %} selected {% endif %}>1</option>
+<option value="2" {% if confidence == 2 %} selected {% endif %}>2</option>
+<option value="3" {% if confidence == 3 %} selected {% endif %}>3</option>
+<option value="4" {% if confidence == 4 %} selected {% endif %}>4</option>
+<option value="5" {% if confidence == 5 %} selected {% endif %}>5</option>
+<!--</optgroup>-->
+</select>
+</h4>
 
-<br>
+<!--<br>-->
 
 <h4>Note</h4>
 <textarea id="comment" rows="5" cols="100">{{comment}}</textarea>

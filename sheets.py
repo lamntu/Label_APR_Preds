@@ -13,16 +13,7 @@ client = gspread.authorize(creds)
 
 sheet = client.open_by_key('1wb7nW4vksC7wQQGhD5oMWuVogB-kEi-WVlJ2WuWA4m4').sheet1
 
-# def save_annotation(record_id, annotator, score, comment):
-#     sheet.append_row([
-#         record_id,
-#         annotator,
-#         score,
-#         comment,
-#         datetime.now().isoformat()
-#     ])
-
-def save_annotation(record_id, annotator, score, comment):
+def save_annotation(record_id, annotator, label, confidence, comment):
     rows = sheet.get_all_values()
     target_row = None
 
@@ -37,14 +28,15 @@ def save_annotation(record_id, annotator, score, comment):
     new_data = [
         int(record_id),
         annotator,
-        int(score),
+        label,
+        int(confidence),
         comment,
         datetime.now().isoformat()
     ]
 
     if target_row:
         # update existing row
-        sheet.update(f"A{target_row}:E{target_row}", [new_data])
+        sheet.update(f"A{target_row}:F{target_row}", [new_data])
     else:
         # append new row
         sheet.append_row(new_data)

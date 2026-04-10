@@ -48,7 +48,7 @@ def index():
         return redirect("/")
 
     annotations = load_annotations(session["annotator"])
-    annotated_ids = {x['id'] : x['score'] for x in annotations}
+    annotated_ids = {x['id'] : x for x in annotations}
 
     show_pending_only = session.get("show_pending_only", False)
 
@@ -61,7 +61,7 @@ def index():
             "model": row["model"],
             "dataset": row["dataset"],
             "annotated": row["id"] in annotated_ids,
-            "label": "" if row["id"] not in annotated_ids else annotated_ids[row["id"]]
+            "label": "" if row["id"] not in annotated_ids else annotated_ids[row["id"]]["label"]
         })
 
     records.sort(key=lambda x: x["bug_id"])
@@ -104,12 +104,14 @@ def annotate(idx):
     existing = [x for x in annotations if x["id"] == row["id"]]
     # annotations[annotations["id"] == row["id"]]
 
-    score = 3
+    label = "unsure"
+    confidence = 5
     comment = ""
     annotated = len(existing) > 0
 
     if annotated:
-        score = existing[0]["score"]
+        label = existing[0]["label"]
+        confidence = existing[0]["confidence"]
         comment = existing[0]["comment"]
         if not isinstance(comment, str) or comment == None:
             comment = ""
@@ -130,7 +132,8 @@ def annotate(idx):
         llm_fix=llm_fix,
         bug_info=row["bug_info"],
         explanation=row["explanation"],
-        score=score,
+        label=label,
+        confidence=confidence,
         comment=comment,
         annotated=annotated,
         annotator=session["annotator"]
@@ -139,31 +142,14 @@ def annotate(idx):
 
 @app.route("/submit", methods=["POST"])
 def submit():
-    # annotations = reload_annotations()
-    # path = get_annotation_path()
-
     data = request.json
     data["id"] = int(data["id"])
-
-    new = pd.DataFrame([{
-        "id": data["id"],
-        "score": data["score"],
-        "comment": data["comment"]
-    }])
-
-    # if os.path.exists(path):
-    #     old = pd.read_csv(path)
-    #     old['id'] = old['id'].astype(int)
-    #     old = old.loc[old["id"] != data["id"]]
-    #     updated = pd.concat([old, new])
-    #     updated.to_csv(path, index=False)
-    # else:
-    #     new.to_csv(path, index=False)
 
     save_annotation(
         record_id=data["id"],
         annotator=session["annotator"],
-        score=data["score"],
+        label=data["label"],
+        confidence=data["confidence"],
         comment=data["comment"]
     )
 
