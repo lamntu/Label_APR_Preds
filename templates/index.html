@@ -14,8 +14,61 @@
 <h3>Annotator: {{annotator}}</h3>
 
 <p>
-Annotated: {{annotated}} / {{total}} ({{progress}}%)
+  Annotated: <span id="annotated_num">{{annotated}}</span> / <span id="total_num">{{total}}</span> (<span id="progress">{{progress}}</span>%)
 </p>
+
+<div class="filter-panel">
+  <h3>Filters</h3>
+
+  <div class="filter-item">
+  <label>#</label>
+  <input style="max-width: 48px;" type="text" id="filter-idx-lower" placeholder="e.g. 1" value="{{filters["idx-lower"]}}">
+  <span>-</span>
+  <input style="max-width: 48px;" type="text" id="filter-idx-upper" placeholder="e.g. 2" value="{{filters["idx-upper"]}}">
+  </div>
+
+  <div class="filter-item">
+  <label>Dataset</label>
+  <span id="filter-dataset">
+    <label><input type="checkbox" value="defects4j" {% if "defects4j" in filters["datasets"] %}checked{% endif %}> defects4j</label>
+    <label><input type="checkbox" value="rwb" {% if "rwb" in filters["datasets"] %}checked{% endif %}> rwb</label>
+    <label><input type="checkbox" value="swebench" {% if "swebench" in filters["datasets"] %}checked{% endif %}> swebench</label>
+    <label><input type="checkbox" value="evalrepair-java" {% if "evalrepair-java" in filters["datasets"] %}checked{% endif %}> evalrepair-java</label>
+    <label><input type="checkbox" value="evalrepair-cpp" {% if "evalrepair-cpp" in filters["datasets"] %}checked{% endif %}> evalrepair-cpp</label>
+  </span>
+  </div>
+  
+  <div class="filter-item">
+  <label>APR System</label>
+  <span id="filter-system">
+    <label><input type="checkbox" value="thinkrepair" {% if "thinkrepair" in filters["systems"] %}checked{% endif %}> thinkrepair</label>
+    <label><input type="checkbox" value="reinfix" {% if "reinfix" in filters["systems"] %}checked{% endif %}> reinfix</label>
+    <label><input type="checkbox" value="morepair" {% if "morepair" in filters["systems"] %}checked{% endif %}> morepair</label>
+  </span>
+  </div>
+
+  <div class="filter-item">
+  <label>Status</label>
+  <select id="filter-status">
+    <option value="all" {% if "all" == filters["status"] %}selected{% endif %}>All</option>
+    <option value="pending" {% if "pending" == filters["status"] %}selected{% endif %}>Pending</option>
+    <option value="annotated" {% if "annotated" == filters["status"] %}selected{% endif %}>Annotated</option>
+  </select>
+  </div>
+
+  <div class="filter-item">
+  <label>Label</label>
+  <span id="filter-label">
+    <label><input type="checkbox" value="incorrect" {% if "incorrect" in filters["labels"] %}checked{% endif %}> incorrect</label>
+    <label><input type="checkbox" value="unsure" {% if "unsure" in filters["labels"] %}checked{% endif %}> unsure</label>
+    <label><input type="checkbox" value="correct" {% if "correct" in filters["labels"] %}checked{% endif %}> correct</label>
+    <label><input type="checkbox" value="" {% if "" in filters["labels"] %}checked{% endif %}> unlabeled</label>
+  </span>
+  </div>
+
+  <button onclick="submitFilters()">Apply</button>
+  <button onclick="clearFilters()">Clear</button>
+</div>
 
 <table class="pred-list">
 
@@ -27,17 +80,18 @@ Annotated: {{annotated}} / {{total}} ({{progress}}%)
 <th>Dataset</th>
 <th>APR System</th>
 <th>Status
-<label class="switch">
-  <input type="checkbox" id="pendingToggle" onchange="togglePendingFilter()" {% if show_pending_only %}checked{% endif %}>
-  <span class="slider"></span>
-</label>
-<span id="toggleLabel">Pending Only</span>
+<!--<label class="switch">-->
+<!--  <input type="checkbox" id="pendingToggle" onchange="togglePendingFilter()" {% if show_pending_only %}checked{% endif %}>-->
+<!--  <span class="slider"></span>-->
+<!--</label>-->
+<!--<span id="toggleLabel">Pending Only</span>-->
 </th>
 <th>Label</th>
 <th>Open</th>
 </tr>
 </thead>
 
+<tbody>
 {% for r in records %}
 
 <tr class="{% if r.annotated %}annotated{% else %}pending{% endif %}">
@@ -67,7 +121,7 @@ Open
 </tr>
 
 {% endfor %}
-
+</tbody>
 </table>
 
 </body>

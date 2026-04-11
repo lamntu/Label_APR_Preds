@@ -49,26 +49,22 @@ pre.field-box {
 }
 
 /* Standard approach */
-select {
+.big {
   font-size: 20px; /* Changes the visible selected value and inherited option size */
-}
-
-option {
-  font-size: 20px; /* May be ignored by some browsers like Chrome/Safari */
 }
 
 /* Annotated rows: green */
 tr.annotated {
-    background-color: #d4edda; /* soft green */
+    background-color: #A0BFF0; /* soft green */
 }
 
 tr.annotated td {
-    color: #155724; /* dark green text */
+    color: black; /* dark green text */
 }
 
 /* Optional hover effect */
 tr.annotated:hover {
-    background-color: #c3e6cb;
+    background-color: #6488EA;
 }
 
 tr.pending:hover {
@@ -79,6 +75,16 @@ tr.pending:hover {
   position: sticky;
   top: -1px;  /* 0px if you don't have a navbar, but something is required */
   background: white; /* If you don't set a background color, you'll be able to see through the header as you scroll */
+}
+
+.pred-list td:nth-child(3) {
+  text-align: center;
+}
+.pred-list td:nth-child(4) {
+  text-align: center;
+}
+.pred-list td:nth-child(6) {
+  text-align: center;
 }
 
 /* Toggle switch container */
@@ -166,4 +172,10 @@ textarea {
 }
 #explanation {
     background-color: #dfffff;
+}
+.filter-panel {
+margin-bottom: 24px;
+}
+.filter-item {
+margin-bottom: 12px;
 }

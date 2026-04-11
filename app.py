@@ -37,6 +37,14 @@ def login():
 
     if request.method == "POST":
         session["annotator"] = request.form["annotator"]
+        session["filters"] = {
+            "idx-lower": "",
+            "idx-upper": "",
+            "datasets": ["defects4j", "rwb", "swebench", "evalrepair-java", "evalrepair-cpp"],
+            "systems": ["thinkrepair", "reinfix", "morepair"],
+            "status": "all",
+            "labels": ["incorrect", "unsure", "correct", ""]
+        }
         return redirect("/records")
 
     return render_template("login.html", annotators=annotators)
@@ -50,18 +58,34 @@ def index():
     annotations = load_annotations(session["annotator"])
     annotated_ids = {x['id'] : x for x in annotations}
 
-    show_pending_only = session.get("show_pending_only", False)
+    filters = session.get("filters", {
+        "idx-lower": "",
+        "idx-upper": "",
+        "datasets": ["defects4j", "rwb", "swebench", "evalrepair-java", "evalrepair-cpp"],
+        "systems": ["thinkrepair", "reinfix", "morepair"],
+        "status": "all",
+        "labels": ["incorrect", "unsure", "correct", ""]
+    })
+
+    print(filters)
 
     records = []
 
     for i, row in dataset.iterrows():
+        if row["dataset"].startswith("d"):
+            bug_dataset = "defects4j"
+        elif row["dataset"].startswith("r"):
+            bug_dataset = "rwb"
+        else:
+            bug_dataset = row["dataset"]
+        label = "" if row["id"] not in annotated_ids else annotated_ids[row["id"]]["label"]
         records.append({
             "idx": row["id"],
             "bug_id": row["bug_id"],
             "model": row["model"],
-            "dataset": row["dataset"],
+            "dataset": bug_dataset,
             "annotated": row["id"] in annotated_ids,
-            "label": "" if row["id"] not in annotated_ids else annotated_ids[row["id"]]["label"]
+            "label": label
         })
 
     records.sort(key=lambda x: x["bug_id"])
@@ -69,7 +93,7 @@ def index():
     for i, row in enumerate(records):
         row["row_num"] = i + 1
 
-    records = [x for x in records if x["model"]=="thinkrepair" and x["bug_id"] in EQV_5]
+    # records = [x for x in records if x["model"]=="thinkrepair" and x["bug_id"] in EQV_5]
     num_annotated = len([x for x in records if x["annotated"]])
     progress = num_annotated / len(records) * 100
     progress = round(progress, 2)
@@ -81,7 +105,7 @@ def index():
         progress=progress,
         annotated=num_annotated,
         annotator=session["annotator"],
-        show_pending_only=show_pending_only
+        filters=filters
     )
 
 
@@ -156,11 +180,10 @@ def submit():
     return {"status": "saved"}
 
 
-@app.route("/set_pending_filter", methods=["POST"])
-def set_pending_filter():
+@app.route("/set_filters", methods=["POST"])
+def set_filters():
     data = request.json
-    value = bool(data["value"])
-    session["show_pending_only"] = value
+    session["filters"] = data
     return {"status": "ok"}
 
 

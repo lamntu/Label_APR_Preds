@@ -4,7 +4,6 @@ window.onload = function() {
     renderDiff(buggy, llmfix, "llmdiff")
 //    hljs.highlightAll()
 
-    console.log("Page is fully loaded.");
     document.querySelectorAll(".collapsible").forEach(btn => {
         btn.addEventListener("click", function() {
             this.classList.toggle("active");
@@ -35,8 +34,6 @@ function renderDiff(oldCode, newCode, container) {
     )
 
     diff = decodeHtml(diff)
-
-    console.log(diff)
 
     let html = Diff2Html.html(diff, {
         drawFileList: false,
