@@ -59,7 +59,8 @@ async function submitLabel() {
             id: recordId,
             label: label,
             confidence: confidence,
-            comment: comment
+            comment: comment,
+            startTime: startTime
         })
     })
 

@@ -127,7 +127,11 @@ function clearFilters() {
     document.getElementById("filter-status").value = "all";
 
     document.querySelectorAll("#filter-dataset input")
-        .forEach(cb => cb.checked = true);
+        .forEach(cb => {
+            if (!cb.disabled) {
+                cb.checked = true
+            }
+        });
 
     document.querySelectorAll("#filter-system input")
         .forEach(cb => cb.checked = true);
@@ -145,7 +149,8 @@ function clearFilters() {
         body: JSON.stringify({
             "idx-lower": "",
             "idx-upper": "",
-            "datasets": ["defects4j", "rwb", "swebench", "evalrepair-java", "evalrepair-cpp"],
+//            "datasets": ["defects4j", "rwb", "swebench", "evalrepair-java", "evalrepair-cpp"],
+            "datasets": ["defects4j", "rwb", "evalrepair-java"],
             "systems": ["thinkrepair", "reinfix", "morepair"],
             "status": "all",
             "labels": ["incorrect", "unsure", "correct", ""]

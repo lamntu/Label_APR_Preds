@@ -1,4 +1,4 @@
-import os
+import time
 
 import pandas as pd
 from flask import Flask, render_template, request, redirect, session
@@ -40,7 +40,8 @@ def login():
         session["filters"] = {
             "idx-lower": "",
             "idx-upper": "",
-            "datasets": ["defects4j", "rwb", "swebench", "evalrepair-java", "evalrepair-cpp"],
+            # "datasets": ["defects4j", "rwb", "swebench", "evalrepair-java", "evalrepair-cpp"],
+            "datasets": ["defects4j", "rwb", "evalrepair-java"],
             "systems": ["thinkrepair", "reinfix", "morepair"],
             "status": "all",
             "labels": ["incorrect", "unsure", "correct", ""]
@@ -61,7 +62,8 @@ def index():
     filters = session.get("filters", {
         "idx-lower": "",
         "idx-upper": "",
-        "datasets": ["defects4j", "rwb", "swebench", "evalrepair-java", "evalrepair-cpp"],
+        # "datasets": ["defects4j", "rwb", "swebench", "evalrepair-java", "evalrepair-cpp"],
+        "datasets": ["defects4j", "rwb", "evalrepair-java"],
         "systems": ["thinkrepair", "reinfix", "morepair"],
         "status": "all",
         "labels": ["incorrect", "unsure", "correct", ""]
@@ -160,21 +162,28 @@ def annotate(idx):
         confidence=confidence,
         comment=comment,
         annotated=annotated,
-        annotator=session["annotator"]
+        annotator=session["annotator"],
+        start_time=time.perf_counter()
     )
 
 
 @app.route("/submit", methods=["POST"])
 def submit():
+    end_time = time.perf_counter()
+
     data = request.json
     data["id"] = int(data["id"])
+
+    start_time = data["startTime"]
+    exec_time = end_time - start_time
 
     save_annotation(
         record_id=data["id"],
         annotator=session["annotator"],
         label=data["label"],
         confidence=data["confidence"],
-        comment=data["comment"]
+        comment=data["comment"],
+        exec_time=exec_time
     )
 
     return {"status": "saved"}
