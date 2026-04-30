@@ -150,7 +150,7 @@ function clearFilters() {
             "idx-lower": "",
             "idx-upper": "",
 //            "datasets": ["defects4j", "rwb", "swebench", "evalrepair-java", "evalrepair-cpp"],
-            "datasets": ["defects4j", "rwb", "evalrepair-java"],
+            "datasets": ["defects4j", "rwb"],
             "systems": ["thinkrepair", "reinfix", "morepair"],
             "status": "all",
             "labels": ["incorrect", "unsure", "correct", ""]
