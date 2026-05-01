@@ -168,8 +168,15 @@ def annotate(idx):
 
     expl = row["explanation"]
     if row["model"] == "reinfix":
-        expl = re.sub(r"```java\s*[\s\S]*?```", "", expl)
-        expl = expl.replace("Example fix:", "").replace("Example:", "")
+        # expl = re.sub(r"```java\s*[\s\S]*?```", "", expl)
+        def remove_java_blocks(match):
+            content = match.group(1)
+            # Count lines (ignore leading/trailing empty lines if needed)
+            line_count = len(content.strip().splitlines())
+            return "" if line_count > 5 else match.group(0)
+        pattern = r"```java\s*\n([\s\S]*?)```"
+        expl = re.sub(pattern, remove_java_blocks, expl)
+        expl = expl.replace("Example fix:", "").replace("Example:", "").replace("Revised code:", "")
         expl = expl.strip()
 
     return render_template(
