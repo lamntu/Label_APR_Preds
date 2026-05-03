@@ -134,6 +134,23 @@ def remove_trailing(code):
     lines = [l if len(l) < leading_spaces else l[leading_spaces:] for l in lines]
     return "\n".join(lines)
 
+def clean_reinfix_expl(expl):
+    # expl = re.sub(r"```java\s*[\s\S]*?```", "", expl)
+    def remove_java_blocks(match):
+        content = match.group(1)
+        # Count lines (ignore leading/trailing empty lines if needed)
+        line_count = len(content.strip().splitlines())
+        return "" if line_count > 5 else match.group(0)
+
+    pattern = r"```java\s*\n([\s\S]*?)```"
+    expl = re.sub(pattern, remove_java_blocks, expl)
+    expl = expl.replace("Example fix:", "").replace("Example:", "").replace("Revised code:", "")
+    if "Suggestion 2" in expl:
+        expl = expl[:expl.index("Suggestion 2")]
+    expl = expl.strip()
+    if expl.endswith("###"):
+        expl = expl[:-3].strip()
+    return expl
 
 @app.route("/annotate/<int:idx>")
 def annotate(idx):
@@ -168,16 +185,7 @@ def annotate(idx):
 
     expl = row["explanation"]
     if row["model"] == "reinfix":
-        # expl = re.sub(r"```java\s*[\s\S]*?```", "", expl)
-        def remove_java_blocks(match):
-            content = match.group(1)
-            # Count lines (ignore leading/trailing empty lines if needed)
-            line_count = len(content.strip().splitlines())
-            return "" if line_count > 5 else match.group(0)
-        pattern = r"```java\s*\n([\s\S]*?)```"
-        expl = re.sub(pattern, remove_java_blocks, expl)
-        expl = expl.replace("Example fix:", "").replace("Example:", "").replace("Revised code:", "")
-        expl = expl.strip()
+        expl = clean_reinfix_expl(expl)
 
     return render_template(
         "annotate.html",
