@@ -186,6 +186,8 @@ def annotate(idx):
     expl = row["explanation"]
     if row["model"] == "reinfix":
         expl = clean_reinfix_expl(expl)
+        if llm_fix[0] == '"' and llm_fix[-1] == '"':
+            llm_fix = llm_fix[1:-1]
 
     return render_template(
         "annotate.html",
