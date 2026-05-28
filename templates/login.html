@@ -3,15 +3,18 @@
 
 <head>
 <title>Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
 
-<h2>Select Annotator</h2>
+<main class="auth-shell">
+<section class="auth-panel">
+<p class="eyebrow">Annotation workspace</p>
+<h1>Select annotator</h1>
 
-
-<p>Stored results depend on the selected annotator</p>
+<p class="muted">Stored results depend on the selected annotator.</p>
 
 <form method="POST">
 
@@ -25,9 +28,11 @@
 
 <br><br>
 
-<button type="submit">Start</button>
+<button class="button-primary" type="submit">Start</button>
 
 </form>
+</section>
+</main>
 
 </body>
 

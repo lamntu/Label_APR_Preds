@@ -14,6 +14,21 @@ ANNOTATION_DIR = "data"
 
 dataset = pd.read_csv(DATA_PATH)
 
+DEFAULT_FILTERS = {
+    "search": "",
+    "idx-lower": "",
+    "idx-upper": "",
+    # "datasets": ["defects4j", "rwb", "swebench", "evalrepair-java", "evalrepair-cpp"],
+    "datasets": ["defects4j", "rwb"],
+    "systems": ["thinkrepair", "reinfix", "morepair"],
+    "status": "all",
+    "labels": ["incorrect", "unsure", "correct", ""]
+}
+
+
+def default_filters():
+    return {key: value.copy() if isinstance(value, list) else value for key, value in DEFAULT_FILTERS.items()}
+
 
 # def get_annotation_path():
 #     annotator = session.get("annotator")
@@ -46,15 +61,7 @@ def login():
 
     if request.method == "POST":
         session["annotator"] = request.form["annotator"]
-        session["filters"] = {
-            "idx-lower": "",
-            "idx-upper": "",
-            # "datasets": ["defects4j", "rwb", "swebench", "evalrepair-java", "evalrepair-cpp"],
-            "datasets": ["defects4j", "rwb"],
-            "systems": ["thinkrepair", "reinfix", "morepair"],
-            "status": "all",
-            "labels": ["incorrect", "unsure", "correct", ""]
-        }
+        session["filters"] = default_filters()
         return redirect("/records")
 
     return render_template("login.html", annotators=annotators)
@@ -69,15 +76,8 @@ def index():
     annotations = load_annotations(annotator)
     annotated_ids = {x['id'] : x for x in annotations}
 
-    filters = session.get("filters", {
-        "idx-lower": "",
-        "idx-upper": "",
-        # "datasets": ["defects4j", "rwb", "swebench", "evalrepair-java", "evalrepair-cpp"],
-        "datasets": ["defects4j", "rwb"],
-        "systems": ["thinkrepair", "reinfix", "morepair"],
-        "status": "all",
-        "labels": ["incorrect", "unsure", "correct", ""]
-    })
+    filters = default_filters()
+    filters.update(session.get("filters", {}))
 
     # print(filters)
 
@@ -111,7 +111,7 @@ def index():
 
     # records = [x for x in records if x["model"]=="thinkrepair" and x["bug_id"] in EQV_5]
     num_annotated = len([x for x in records if x["annotated"]])
-    progress = num_annotated / len(records) * 100
+    progress = 0 if len(records) == 0 else num_annotated / len(records) * 100
     progress = round(progress, 2)
 
     return render_template(
@@ -157,7 +157,11 @@ def annotate(idx):
     if "annotator" not in session:
         return redirect("/")
 
-    row = dataset.iloc[idx]
+    matching_rows = dataset[dataset["id"] == idx]
+    if len(matching_rows) > 0:
+        row = matching_rows.iloc[0]
+    else:
+        row = dataset.iloc[idx]
 
     annotator = session["annotator"]
     annotations = load_annotations(annotator)
@@ -231,8 +235,10 @@ def submit():
 
 @app.route("/set_filters", methods=["POST"])
 def set_filters():
-    data = request.json
-    session["filters"] = data
+    data = request.get_json(silent=True) or {}
+    filters = default_filters()
+    filters.update(data)
+    session["filters"] = filters
     return {"status": "ok"}
 
 

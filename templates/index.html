@@ -3,33 +3,72 @@
 
 <head>
 <title>Welcome {{annotator}}!</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="/static/index.js"></script>
 <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
 
-<h1>LLM Prediction Dataset</h1>
+<header class="app-header">
+  <div>
+    <p class="eyebrow">LLM prediction dataset</p>
+    <h1>Annotation queue</h1>
+  </div>
+  <div class="header-meta">
+    <span>{{annotator}}</span>
+    <a class="button-secondary" href="/">Switch</a>
+  </div>
+</header>
 
-<h3>Annotator: {{annotator}}</h3>
-
-<p>
-  Annotated: <span id="annotated_num">{{annotated}}</span> / <span id="total_num">{{total}}</span> (<span id="progress">{{progress}}</span>%)
-</p>
+<main class="page-shell">
+<section class="summary-bar" aria-label="Annotation progress">
+  <div>
+    <span class="summary-label">Annotated</span>
+    <strong><span id="annotated_num">{{annotated}}</span> / <span id="total_num">{{total}}</span></strong>
+  </div>
+  <div class="progress-track">
+    <div id="progress_bar" class="progress-fill" style="width: {{progress}}%;"></div>
+  </div>
+  <div class="summary-percent"><span id="progress">{{progress}}</span>%</div>
+</section>
 
 <div class="filter-panel">
-  <h3>Filters</h3>
-
-  <div class="filter-item">
-  <label>#</label>
-  <input style="max-width: 48px;" type="text" id="filter-idx-lower" placeholder="e.g. 1" value="{{filters["idx-lower"]}}">
-  <span>-</span>
-  <input style="max-width: 48px;" type="text" id="filter-idx-upper" placeholder="e.g. 2" value="{{filters["idx-upper"]}}">
+  <div class="filter-heading">
+    <h2>Filters</h2>
+    <div class="filter-actions">
+      <button class="button-primary" onclick="submitFilters()">Apply</button>
+      <button class="button-secondary" onclick="clearFilters()">Clear</button>
+    </div>
   </div>
 
-  <div class="filter-item">
+  <div class="filter-grid">
+  <div class="filter-item filter-search">
+  <label for="filter-search">Search</label>
+  <input type="search" id="filter-search" placeholder="Bug ID or APR system" value="{{filters["search"]}}">
+  </div>
+
+  <div class="filter-item filter-range">
+  <label>Row range</label>
+  <div class="range-inputs">
+    <input type="number" min="1" id="filter-idx-lower" placeholder="From" value="{{filters["idx-lower"]}}">
+    <span>-</span>
+    <input type="number" min="1" id="filter-idx-upper" placeholder="To" value="{{filters["idx-upper"]}}">
+  </div>
+  </div>
+
+  <div class="filter-item filter-status">
+  <label for="filter-status">Status</label>
+  <select id="filter-status">
+    <option value="all" {% if "all" == filters["status"] %}selected{% endif %}>All</option>
+    <option value="pending" {% if "pending" == filters["status"] %}selected{% endif %}>Pending</option>
+    <option value="annotated" {% if "annotated" == filters["status"] %}selected{% endif %}>Annotated</option>
+  </select>
+  </div>
+
+  <div class="filter-item filter-dataset">
   <label>Dataset</label>
-  <span id="filter-dataset">
+  <span class="option-row" id="filter-dataset">
     <label><input type="checkbox" value="defects4j" {% if "defects4j" in filters["datasets"] %}checked{% endif %}> defects4j</label>
     <label><input type="checkbox" value="rwb" {% if "rwb" in filters["datasets"] %}checked{% endif %}> rwb</label>
     <label><input type="checkbox" value="swebench" disabled> swebench</label>
@@ -41,38 +80,28 @@
   </span>
   </div>
   
-  <div class="filter-item">
+  <div class="filter-item filter-system">
   <label>APR System</label>
-  <span id="filter-system">
+  <span class="option-row" id="filter-system">
     <label><input type="checkbox" value="thinkrepair" {% if "thinkrepair" in filters["systems"] %}checked{% endif %}> thinkrepair</label>
     <label><input type="checkbox" value="reinfix" {% if "reinfix" in filters["systems"] %}checked{% endif %}> reinfix</label>
     <label><input type="checkbox" value="morepair" {% if "morepair" in filters["systems"] %}checked{% endif %}> morepair</label>
   </span>
   </div>
 
-  <div class="filter-item">
-  <label>Status</label>
-  <select id="filter-status">
-    <option value="all" {% if "all" == filters["status"] %}selected{% endif %}>All</option>
-    <option value="pending" {% if "pending" == filters["status"] %}selected{% endif %}>Pending</option>
-    <option value="annotated" {% if "annotated" == filters["status"] %}selected{% endif %}>Annotated</option>
-  </select>
-  </div>
-
-  <div class="filter-item">
+  <div class="filter-item filter-label">
   <label>Label</label>
-  <span id="filter-label">
+  <span class="option-row" id="filter-label">
     <label><input type="checkbox" value="incorrect" {% if "incorrect" in filters["labels"] %}checked{% endif %}> incorrect</label>
     <label><input type="checkbox" value="unsure" {% if "unsure" in filters["labels"] %}checked{% endif %}> unsure</label>
     <label><input type="checkbox" value="correct" {% if "correct" in filters["labels"] %}checked{% endif %}> correct</label>
     <label><input type="checkbox" value="" {% if "" in filters["labels"] %}checked{% endif %}> unlabeled</label>
   </span>
   </div>
-
-  <button onclick="submitFilters()">Apply</button>
-  <button onclick="clearFilters()">Clear</button>
+  </div>
 </div>
 
+<div class="table-wrap">
 <table class="pred-list">
 
 <thead>
@@ -97,26 +126,26 @@
 <tbody>
 {% for r in records %}
 
-<tr class="{% if r.annotated %}annotated{% else %}pending{% endif %}">
+<tr class="{% if r.annotated %}annotated{% else %}pending{% endif %}" data-href="/annotate/{{r.idx}}" tabindex="0" aria-label="Open annotation for {{r.bug_id}}">
 
-<td>{{r.row_num}}</td>           <!--intentionally left blank-->
+<td>{{r.row_num}}</td>
 <!--<td>{{r.idx}}</td>-->
-<td>{{r.bug_id}}</td>
+<td><strong>{{r.bug_id}}</strong></td>
 <td>{{r.dataset}}</td>
 <td>{{r.model}}</td>
 
 <td>
 {% if r.annotated %}
-✔ Annotated
+<span class="status-pill status-annotated">Annotated</span>
 {% else %}
-Pending...
+<span class="status-pill status-pending">Pending</span>
 {% endif %}
 </td>
 
-<td><span class="badge-label label-shade-{{r.label}}">{{r.label}}</span></td>
+<td><span class="badge-label label-shade-{{r.label}}">{% if r.label %}{{r.label}}{% else %}unlabeled{% endif %}</span></td>
 
 <td>
-<a href="/annotate/{{r.idx}}">
+<a class="open-link" href="/annotate/{{r.idx}}">
 Open
 </a>
 </td>
@@ -126,6 +155,10 @@ Open
 {% endfor %}
 </tbody>
 </table>
+</div>
+</main>
+
+<button id="scroll-top-button" class="scroll-top-button" type="button" aria-label="Scroll to top" title="Scroll to top">↑</button>
 
 </body>
 </html>

@@ -3,6 +3,7 @@
 
 <head>
 <title>{{annotator}} | {{bug_id}} {% if annotated == True %} ✔{% endif %}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/diff2html/bundles/css/diff2html.min.css">
 
@@ -38,85 +39,100 @@
 
 <body>
 
-<a href="/records">← Back to list</a>
+<header class="app-header annotate-header">
+  <div>
+    <a class="back-link" href="/records">Back to list</a>
+    <p class="eyebrow">Record</p>
+    <h1>{{bug_id}} {% if annotated == True %}<span class="status-dot" title="Annotated"></span>{% endif %}</h1>
+  </div>
+  <div class="header-meta">
+    <span>{{annotator}}</span>
+  </div>
+</header>
 
-<h1>Record {{bug_id}} {% if annotated == True %} ✔{% endif %}</h1>
-<h2>Annotator: {{annotator}}</h2>
+<main class="annotation-layout">
+  <section class="review-stack">
+    <section class="review-section">
+      <h2>Buggy code</h2>
+      <pre class="line-numbers code-panel"><code class="language-java">{{buggy}}</code></pre>
+    </section>
 
-<h3>1. Buggy Code</h3>
-<!--<button type="button" class="collapsible">Show ▸</button>-->
-<!--<div class="content">-->
-<pre class="line-numbers"><code class="language-java">{{buggy}}</code></pre>
-<!--</div>-->
+    <section class="review-section">
+      <h2>Bug info</h2>
+      <pre class="field-box" id="bug_info">{{bug_info}}</pre>
+    </section>
 
-<h3>2. Bug Info</h3>
-<!--<button type="button" class="collapsible">Show ▸</button>-->
-<!--<div class="content">-->
-<pre class="field-box" id="bug_info">{{bug_info}}</pre>
-<!--</div>-->
+    <section class="review-section">
+      <h2>Developer fix</h2>
+      <div id="devdiff" class="diff-panel"></div>
+    </section>
 
-<h3>3. Developer Fix</h3>
+    <section class="review-section">
+      <h2>LLM explanation</h2>
+      <pre class="field-box" id="explanation">{{explanation}}</pre>
+    </section>
 
-<div id="devdiff"></div>
+    <section class="review-section">
+      <div class="section-row">
+        <h2>LLM fix</h2>
+        <button type="button" class="collapsible">Show</button>
+      </div>
+      <div class="content">
+        <div id="llmdiff" class="diff-panel"></div>
+      </div>
+    </section>
+  </section>
 
-<h3>4. LLM Explanation</h3>
+  <aside class="decision-panel" aria-label="Annotation decision">
+    <div class="decision-card">
+      <h2>Decision</h2>
 
-<pre class="field-box" id="explanation">{{explanation}}</pre>
+      <div class="decision-body">
+      <div class="slider-field">
+        <div class="slider-header">
+          <label for="label-slider">Label</label>
+          <output id="label-value" for="label-slider">{{label}}</output>
+        </div>
+        <input type="hidden" id="label" value="{{label}}">
+        <input class="range-control label-slider" type="range" id="label-slider" min="0" max="2" step="1" value="{% if label == "incorrect" %}0{% elif label == "unsure" %}1{% else %}2{% endif %}" aria-valuemin="incorrect" aria-valuemax="correct">
+        <div class="range-ticks label-ticks" aria-hidden="true">
+          <span>incorrect</span>
+          <span>unsure</span>
+          <span>correct</span>
+        </div>
+      </div>
 
+      <div class="slider-field">
+        <div class="slider-header">
+          <label for="confidence">Confidence</label>
+          <output id="confidence-value" for="confidence">{{confidence}}</output>
+        </div>
+        <input class="range-control" type="range" id="confidence" min="1" max="5" step="1" value="{{confidence}}" required>
+        <div class="range-ticks" aria-hidden="true">
+          <span>1</span>
+          <span>2</span>
+          <span>3</span>
+          <span>4</span>
+          <span>5</span>
+        </div>
+      </div>
 
-<h3>5. LLM Fix (Optional)</h3>
+      <label for="comment">Note</label>
+      <textarea id="comment" rows="7">{{comment}}</textarea>
 
-<button type="button" class="collapsible">Show ▸</button>
-<div class="content">
-<div id="llmdiff"></div>
-</div>
-
-<!--<br>-->
-<hr>
-
-<h3>
-<label>6. Label</label>
-
-<select class="big" id="label" required>
-<!--<optgroup>-->
-<option value="incorrect" {% if label == "incorrect" %} selected {% endif %}>incorrect</option>
-<option value="unsure" {% if label == "unsure" %} selected {% endif %}>unsure</option>
-<option value="correct" {% if label == "correct" %} selected {% endif %}>correct</option>
-<!--</optgroup>-->
-</select>
-</h3>
-
-<h4>Your Confidence
-<select class="big" id="confidence" required>
-<!--<optgroup>-->
-<option value="1" {% if confidence == 1 %} selected {% endif %}>1</option>
-<option value="2" {% if confidence == 2 %} selected {% endif %}>2</option>
-<option value="3" {% if confidence == 3 %} selected {% endif %}>3</option>
-<option value="4" {% if confidence == 4 %} selected {% endif %}>4</option>
-<option value="5" {% if confidence == 5 %} selected {% endif %}>5</option>
-<!--</optgroup>-->
-</select>
-</h4>
-
-<!--<br>-->
-
-<h4>Note</h4>
-<textarea id="comment" rows="5" cols="100">{{comment}}</textarea>
-
-<br><br>
-
-<button onclick="submitLabel()">Save</button>
-
-<br><br>
-
-<a href="/records">← Back to list</a>
+      <button id="save-button" class="button-primary save-button" onclick="submitLabel()">Save</button>
+      <p id="save-status" class="save-status" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </aside>
+</main>
 
 <script>
-let recordId = `{{idx}}`
-let buggy = `{{buggy}}`
-let devfix = `{{dev_fix}}`
-let llmfix = `{{llm_fix}}`
-let startTime = {{start_time}}
+let recordId = {{idx|tojson}}
+let buggy = {{buggy|tojson}}
+let devfix = {{dev_fix|tojson}}
+let llmfix = {{llm_fix|tojson}}
+let startTime = {{start_time|tojson}}
 </script>
 
 </body>
