@@ -226,6 +226,10 @@ button {
   gap: 16px;
 }
 
+.filter-grid.is-hidden {
+  display: none;
+}
+
 .filter-item {
   grid-column: span 4;
   min-width: 0;

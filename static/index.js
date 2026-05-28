@@ -6,6 +6,12 @@ window.onload = function() {
         control.addEventListener("change", handleFilterChange);
     });
 
+    let filterToggle = document.getElementById("filter-toggle");
+    filterToggle.addEventListener("click", toggleFilterPanel);
+    restoreFilterPanelVisibility();
+
+    document.getElementById("filter-clear").addEventListener("click", clearFilters);
+
     let scrollTopButton = document.getElementById("scroll-top-button");
     scrollTopButton.addEventListener("click", scrollToTop);
     window.addEventListener("scroll", toggleScrollTopButton);
@@ -25,6 +31,26 @@ function handleFilterChange() {
     applyFilters();
     window.clearTimeout(persistFiltersTimer);
     persistFiltersTimer = window.setTimeout(persistFilters, 250);
+}
+
+function toggleFilterPanel() {
+    let filterGrid = document.getElementById("filter-grid");
+    let filterToggle = document.getElementById("filter-toggle");
+    let isHidden = filterGrid.classList.toggle("is-hidden");
+
+    filterToggle.textContent = isHidden ? "Show" : "Hide";
+    filterToggle.setAttribute("aria-expanded", String(!isHidden));
+    sessionStorage.setItem("filtersHidden", String(isHidden));
+}
+
+function restoreFilterPanelVisibility() {
+    let filterGrid = document.getElementById("filter-grid");
+    let filterToggle = document.getElementById("filter-toggle");
+    let isHidden = sessionStorage.getItem("filtersHidden") === "true";
+
+    filterGrid.classList.toggle("is-hidden", isHidden);
+    filterToggle.textContent = isHidden ? "Show" : "Hide";
+    filterToggle.setAttribute("aria-expanded", String(!isHidden));
 }
 
 function toggleScrollTopButton() {
@@ -147,11 +173,6 @@ function applyFilters() {
     applyProgress()
 }
 
-function submitFilters() {
-    applyFilters()
-    persistFilters()
-}
-
 function collectFilters() {
     let searchFilter = document.getElementById("filter-search").value.trim();
     let idFilterLower = document.getElementById("filter-idx-lower").value.toLowerCase();
@@ -226,24 +247,8 @@ function clearFilters() {
         .forEach(cb => cb.checked = true);
 
     document.querySelectorAll("#filter-label input")
-            .forEach(cb => cb.checked = true);
+        .forEach(cb => cb.checked = true);
 
     applyFilters();
-
-    fetch("/set_filters", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            "search": "",
-            "idx-lower": "",
-            "idx-upper": "",
-//            "datasets": ["defects4j", "rwb", "swebench", "evalrepair-java", "evalrepair-cpp"],
-            "datasets": ["defects4j", "rwb"],
-            "systems": ["thinkrepair", "reinfix", "morepair"],
-            "status": "all",
-            "labels": ["incorrect", "unsure", "correct", ""]
-        })
-    });
+    persistFilters();
 }

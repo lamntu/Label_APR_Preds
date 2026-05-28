@@ -37,12 +37,12 @@
   <div class="filter-heading">
     <h2>Filters</h2>
     <div class="filter-actions">
-      <button class="button-primary" onclick="submitFilters()">Apply</button>
-      <button class="button-secondary" onclick="clearFilters()">Clear</button>
+      <button id="filter-clear" class="button-primary" type="button">Clear</button>
+      <button id="filter-toggle" class="button-secondary" type="button" aria-expanded="true" aria-controls="filter-grid">Hide</button>
     </div>
   </div>
 
-  <div class="filter-grid">
+  <div class="filter-grid" id="filter-grid">
   <div class="filter-item filter-search">
   <label for="filter-search">Search</label>
   <input type="search" id="filter-search" placeholder="Bug ID or APR system" value="{{filters["search"]}}">
@@ -136,9 +136,9 @@
 
 <td>
 {% if r.annotated %}
-<span class="status-pill status-annotated">Annotated</span>
+<span class="status-pill status-annotated">annotated</span>
 {% else %}
-<span class="status-pill status-pending">Pending</span>
+<span class="status-pill status-pending">pending</span>
 {% endif %}
 </td>
 
