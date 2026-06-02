@@ -42,7 +42,7 @@
 <header class="app-header annotate-header">
   <div>
     <a class="back-link" href="/records">Back to list</a>
-    <p class="eyebrow">Record</p>
+<!--    <p class="eyebrow">Record</p>-->
     <h1>{{bug_id}} {% if annotated == True %}<span class="status-dot" title="Annotated"></span>{% endif %}</h1>
   </div>
   <div class="header-meta">
@@ -74,7 +74,10 @@
 
     <section class="review-section">
       <div class="section-row">
-        <h2>LLM fix</h2>
+        <div>
+          <h2>LLM fix</h2>
+          <p class="section-note">Optional: the explanation can be correct while the patch is incorrect</p>
+        </div>
         <button type="button" class="collapsible">Show</button>
       </div>
       <div class="content">
@@ -107,6 +110,7 @@
           <label for="confidence">Confidence</label>
           <output id="confidence-value" for="confidence">{{confidence}}</output>
         </div>
+        <p class="range-note">1 - low confidence, 5 - high confidence</p>
         <input class="range-control" type="range" id="confidence" min="1" max="5" step="1" value="{{confidence}}" required>
         <div class="range-ticks" aria-hidden="true">
           <span>1</span>
@@ -120,7 +124,10 @@
       <label for="comment">Note</label>
       <textarea id="comment" rows="7">{{comment}}</textarea>
 
-      <button id="save-button" class="button-primary save-button" onclick="submitLabel()">Save</button>
+      <div class="decision-actions">
+        <button id="save-button" class="button-primary save-button" onclick="submitLabel()">Save</button>
+        <a class="button-secondary back-to-list-button" href="/records">Back to list</a>
+      </div>
       <p id="save-status" class="save-status" role="status" aria-live="polite"></p>
       </div>
     </div>
