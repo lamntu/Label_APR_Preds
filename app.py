@@ -1,8 +1,11 @@
+import json
 import re
 import time
+from urllib.parse import urlparse
+from urllib.request import urlopen
 
 import pandas as pd
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, jsonify
 from sheets import save_annotation, load_annotations
 
 app = Flask(__name__)
@@ -152,6 +155,18 @@ def clean_reinfix_expl(expl):
         expl = expl[:-3].strip()
     return expl
 
+
+def extract_bug_report_url(dataset_name, bug_info):
+    if not str(dataset_name).startswith("d"):
+        return ""
+
+    match = re.search(r"Bug report url:\s*(https?://\S+)", str(bug_info), re.IGNORECASE)
+    return "" if match is None else match.group(1)
+
+
+def is_json_bug_report_url(url):
+    return urlparse(url).path.lower().endswith(".json")
+
 @app.route("/annotate/<int:idx>")
 def annotate(idx):
     if "annotator" not in session:
@@ -193,6 +208,9 @@ def annotate(idx):
         if llm_fix[0] == '"' and llm_fix[-1] == '"':
             llm_fix = llm_fix[1:-1]
 
+    bug_report_url = extract_bug_report_url(row["dataset"], row["bug_info"])
+    bug_report_is_json = is_json_bug_report_url(bug_report_url) if bug_report_url else False
+
     return render_template(
         "annotate.html",
         idx=idx,
@@ -201,6 +219,8 @@ def annotate(idx):
         dev_fix=dev_fix,
         llm_fix=llm_fix,
         bug_info=row["bug_info"],
+        bug_report_url=bug_report_url,
+        bug_report_is_json=bug_report_is_json,
         explanation=expl,
         label=label,
         confidence=confidence,
@@ -209,6 +229,29 @@ def annotate(idx):
         annotator=annotator,
         start_time=time.perf_counter()
     )
+
+
+@app.route("/bug_report_json")
+def bug_report_json():
+    url = request.args.get("url", "")
+    parsed_url = urlparse(url)
+
+    if parsed_url.scheme not in {"http", "https"}:
+        return {"error": "invalid url"}, 400
+
+    if parsed_url.hostname != "storage.googleapis.com" or not is_json_bug_report_url(url):
+        return {"error": "unsupported bug report url"}, 400
+
+    try:
+        with urlopen(url, timeout=8) as response:
+            raw_data = response.read(2 * 1024 * 1024)
+    except Exception:
+        return {"error": "could not load bug report"}, 502
+
+    try:
+        return jsonify(json.loads(raw_data.decode("utf-8")))
+    except Exception:
+        return {"error": "invalid json"}, 502
 
 
 @app.route("/submit", methods=["POST"])

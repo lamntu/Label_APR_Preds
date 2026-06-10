@@ -52,27 +52,41 @@
 
 <main class="annotation-layout">
   <section class="review-stack">
-    <section class="review-section">
+    <section class="review-section" id="buggy-code-section">
       <h2>Buggy code</h2>
       <pre class="line-numbers code-panel"><code class="language-java">{{buggy}}</code></pre>
     </section>
 
-    <section class="review-section">
-      <h2>Bug info</h2>
+    <section class="review-section" id="bug-info-section">
+      <div class="section-row bug-info-heading">
+        <h2>Bug info</h2>
+        {% if bug_report_url %}
+        {% if bug_report_is_json %}
+        <button class="section-link" id="bug-report-toggle" type="button" aria-expanded="false" aria-controls="bug-report-json">Bug report</button>
+        {% else %}
+        <a class="section-link" href="{{bug_report_url}}" target="_blank" rel="noopener noreferrer">Bug report</a>
+        {% endif %}
+        {% endif %}
+      </div>
+      {% if bug_report_is_json %}
+      <div class="bug-report-json" id="bug-report-json" data-url="{{bug_report_url}}" hidden>
+        <p class="bug-report-loading">Loading bug report...</p>
+      </div>
+      {% endif %}
       <pre class="field-box" id="bug_info">{{bug_info}}</pre>
     </section>
 
-    <section class="review-section">
+    <section class="review-section" id="developer-fix-section">
       <h2>Developer fix</h2>
       <div id="devdiff" class="diff-panel"></div>
     </section>
 
-    <section class="review-section">
+    <section class="review-section" id="llm-explanation-section">
       <h2>LLM explanation</h2>
       <pre class="field-box" id="explanation">{{explanation}}</pre>
     </section>
 
-    <section class="review-section">
+    <section class="review-section" id="llm-fix-section">
       <div class="section-row">
         <div>
           <h2>LLM fix</h2>
@@ -87,7 +101,7 @@
   </section>
 
   <aside class="decision-panel" aria-label="Annotation decision">
-    <div class="decision-card">
+    <div class="decision-card" id="decision-section">
       <h2>Label Explanation Correctness</h2>
 
       <div class="decision-body">
@@ -134,12 +148,35 @@
   </aside>
 </main>
 
+<button id="tutorial-toggle" class="tutorial-toggle" type="button" aria-label="Open annotation manual" title="Annotation manual" aria-expanded="false" aria-controls="tutorial-panel">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z"></path>
+    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 8H20"></path>
+  </svg>
+</button>
+
+<aside id="tutorial-panel" class="tutorial-panel" aria-label="Annotation tutorial" hidden>
+  <div class="tutorial-heading">
+    <h2>Annotation Manual</h2>
+    <button id="tutorial-close" type="button" aria-label="Close tutorial">×</button>
+  </div>
+  <ol>
+    <li><button type="button" class="manual-step" data-target="developer-fix-section">Read the developer fix.</button></li>
+    <li><button type="button" class="manual-step" data-target="developer-fix-section">Read the comments around the developer fix. They often describe the bug and how it was fixed.</button></li>
+    <li><button type="button" class="manual-step" data-target="bug-info-section">Click the bug report button to read the discussion between the reporter and the maintainer.</button></li>
+    <li><button type="button" class="manual-step" data-target="llm-explanation-section">Review the explanation.</button></li>
+    <li><button type="button" class="manual-step" data-target="llm-fix-section">Optional: Check the LLM fix if needed.</button></li>
+    <li><button type="button" class="manual-step" data-target="decision-section">Label whether the explanation is correct.</button></li>
+  </ol>
+</aside>
+
 <script>
 let recordId = {{idx|tojson}}
 let buggy = {{buggy|tojson}}
 let devfix = {{dev_fix|tojson}}
 let llmfix = {{llm_fix|tojson}}
 let startTime = {{start_time|tojson}}
+let bugReportJsonUrl = {{bug_report_url|tojson}}
 </script>
 
 </body>
