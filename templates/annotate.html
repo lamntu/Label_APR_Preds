@@ -43,7 +43,11 @@
   <div>
     <a class="back-link" href="/records">Back to list</a>
 <!--    <p class="eyebrow">Record</p>-->
-    <h1>{{bug_id}} {% if annotated == True %}<span class="status-dot" title="Annotated"></span>{% endif %}</h1>
+    <div class="record-title-row">
+      <h1>{{bug_id}}</h1>
+      {% if annotated == True %}<span class="status-dot" title="Annotated"></span>{% endif %}
+      <span class="apr-system-badge">{{apr_system}}</span>
+    </div>
   </div>
   <div class="header-meta">
     <span>{{annotator}}</span>

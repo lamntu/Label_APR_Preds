@@ -71,6 +71,92 @@ RWB_BATCHES = {
     "Chenxi": ["Jsoup-94", "Jsoup-97", "Jsoup-98", "Lang-600", "Lang-606", "Lang-609", "Lang-611", "Lang-613", "Lang-614"]
 }
 
+
+def normalize_dataset(dataset_name):
+    if str(dataset_name).startswith("d"):
+        return "defects4j"
+    if str(dataset_name).startswith("r"):
+        return "rwb"
+    return dataset_name
+
+
+def build_records(annotator, annotations):
+    annotated_ids = {x['id']: x for x in annotations}
+    records = []
+
+    for i, row in dataset.iterrows():
+        bug_dataset = normalize_dataset(row["dataset"])
+
+        if (annotator in BATCHES and bug_dataset == "defects4j" and row["bug_id"] not in BATCHES[annotator]) \
+                or (annotator in RWB_BATCHES and bug_dataset == "rwb" and row["bug_id"] not in RWB_BATCHES[annotator]):
+            continue
+
+        label = "" if row["id"] not in annotated_ids else annotated_ids[row["id"]]["label"]
+        records.append({
+            "idx": int(row["id"]),
+            "bug_id": row["bug_id"],
+            "model": row["model"],
+            "dataset": bug_dataset,
+            "annotated": row["id"] in annotated_ids,
+            "label": label
+        })
+
+    records.sort(key=lambda x: x["bug_id"])
+
+    for i, row in enumerate(records):
+        row["row_num"] = i + 1
+
+    return records
+
+
+def filtered_records(records, filters):
+    filtered = []
+    search_filter = filters.get("search", "").strip().lower()
+    idx_lower = int(filters["idx-lower"]) if str(filters.get("idx-lower", "")).isdigit() else None
+    idx_upper = int(filters["idx-upper"]) if str(filters.get("idx-upper", "")).isdigit() else None
+    status_filter = filters.get("status", "all")
+
+    for record in records:
+        if idx_lower is not None and record["row_num"] < idx_lower:
+            continue
+        if idx_upper is not None and record["row_num"] > idx_upper:
+            continue
+        if search_filter and search_filter not in f"{record['bug_id']} {record['dataset']} {record['model']}".lower():
+            continue
+        if status_filter == "pending" and record["annotated"]:
+            continue
+        if status_filter == "annotated" and not record["annotated"]:
+            continue
+        if record["dataset"] not in filters.get("datasets", []):
+            continue
+        if record["model"] not in filters.get("systems", []):
+            continue
+        if record["label"] not in filters.get("labels", []):
+            continue
+
+        filtered.append(record)
+
+    return filtered
+
+
+def next_record_id(current_id, annotator):
+    filters = default_filters()
+    filters.update(session.get("filters", {}))
+
+    records = build_records(annotator, load_annotations(annotator))
+    visible_records = filtered_records(records, filters)
+    current_record = next((record for record in records if record["idx"] == current_id), None)
+
+    if current_record is None:
+        return None
+
+    for record in visible_records:
+        if record["row_num"] > current_record["row_num"]:
+            return record["idx"]
+
+    return None
+
+
 @app.route("/", methods=["GET", "POST"])
 def login():
     annotators = ["Lam", "Chenxi", "Haoye", "Xiaoning", "Aldeida", "Neelofar"]
@@ -90,41 +176,13 @@ def index():
 
     annotator = session["annotator"]
     annotations = load_annotations(annotator)
-    annotated_ids = {x['id'] : x for x in annotations}
 
     filters = default_filters()
     filters.update(session.get("filters", {}))
 
     # print(filters)
 
-    records = []
-
-    for i, row in dataset.iterrows():
-        if row["dataset"].startswith("d"):
-            bug_dataset = "defects4j"
-        elif row["dataset"].startswith("r"):
-            bug_dataset = "rwb"
-        else:
-            bug_dataset = row["dataset"]
-
-        if (annotator in BATCHES and bug_dataset == "defects4j" and row["bug_id"] not in BATCHES[annotator]) \
-                or (annotator in RWB_BATCHES and bug_dataset == "rwb" and row["bug_id"] not in RWB_BATCHES[annotator]):
-            continue
-
-        label = "" if row["id"] not in annotated_ids else annotated_ids[row["id"]]["label"]
-        records.append({
-            "idx": row["id"],
-            "bug_id": row["bug_id"],
-            "model": row["model"],
-            "dataset": bug_dataset,
-            "annotated": row["id"] in annotated_ids,
-            "label": label
-        })
-
-    records.sort(key=lambda x: x["bug_id"])
-
-    for i, row in enumerate(records):
-        row["row_num"] = i + 1
+    records = build_records(annotator, annotations)
 
     # records = [x for x in records if x["model"]=="thinkrepair" and x["bug_id"] in EQV_5]
     num_annotated = len([x for x in records if x["annotated"]])
@@ -229,6 +287,7 @@ def annotate(idx):
         "annotate.html",
         idx=idx,
         bug_id=row["bug_id"],
+        apr_system=row["model"],
         buggy=buggy,
         dev_fix=dev_fix,
         llm_fix=llm_fix,
@@ -287,7 +346,10 @@ def submit():
         exec_time=exec_time
     )
 
-    return {"status": "saved"}
+    next_id = next_record_id(data["id"], session["annotator"])
+    next_url = "" if next_id is None else f"/annotate/{next_id}"
+
+    return {"status": "saved", "nextUrl": next_url}
 
 
 @app.route("/set_filters", methods=["POST"])

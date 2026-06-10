@@ -467,6 +467,24 @@ table.pred-list {
   margin-bottom: 12px;
 }
 
+.record-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.apr-system-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #eef6f8;
+  color: var(--accent-dark);
+  font-weight: 900;
+}
+
 .status-dot {
   display: inline-block;
   width: 13px;

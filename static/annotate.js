@@ -304,8 +304,9 @@ async function submitLabel() {
             throw new Error("Save failed");
         }
 
-        saveStatus.textContent = "Saved. Returning to list...";
-        window.location = '/records';
+        let result = await response.json();
+        saveStatus.textContent = result.nextUrl ? "Saved. Opening next record..." : "Saved. Returning to list...";
+        window.location = result.nextUrl || '/records';
     } catch (error) {
         saveButton.disabled = false;
         saveButton.textContent = "Save";
