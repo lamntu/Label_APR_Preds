@@ -71,6 +71,7 @@ RWB_BATCHES = {
     "Chenxi": ["Jsoup-94", "Jsoup-97", "Jsoup-98", "Lang-600", "Lang-606", "Lang-609", "Lang-611", "Lang-613", "Lang-614"]
 }
 
+ggsheet_annotations = []
 
 def normalize_dataset(dataset_name):
     if str(dataset_name).startswith("d"):
@@ -127,13 +128,14 @@ def index():
         return redirect("/")
 
     annotator = session["annotator"]
-    annotations = load_annotations(annotator)
+    global ggsheet_annotations
+    ggsheet_annotations = load_annotations(annotator)
 
     filters = default_filters()
     filters.update(session.get("filters", {}))
 
     # print(filters)
-    records = build_records(annotator, annotations)
+    records = build_records(annotator, ggsheet_annotations)
 
     # records = [x for x in records if x["model"]=="thinkrepair" and x["bug_id"] in EQV_5]
     num_annotated = len([x for x in records if x["annotated"]])
@@ -202,9 +204,8 @@ def annotate(idx):
         row = dataset.iloc[idx]
 
     annotator = session["annotator"]
-    annotations = load_annotations(annotator)
-    existing = [x for x in annotations if x["id"] == row["id"]]
-    # annotations[annotations["id"] == row["id"]]
+    global ggsheet_annotations
+    existing = [x for x in ggsheet_annotations if x["id"] == row["id"]]
 
     label = "unsure"
     confidence = 5
