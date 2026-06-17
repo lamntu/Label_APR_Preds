@@ -17,6 +17,9 @@ ANNOTATION_DIR = "data"
 
 dataset = pd.read_csv(DATA_PATH)
 
+all_record = []
+filter_records = []
+
 DEFAULT_FILTERS = {
     "search": "",
     "idx-lower": "",
@@ -110,6 +113,9 @@ def build_records(annotator, annotations):
 
 
 def filtered_records(records, filters):
+    global filter_records
+    if len(filter_records) != 0:
+        return filter_records
     filtered = []
     search_filter = filters.get("search", "").strip().lower()
     idx_lower = int(filters["idx-lower"]) if str(filters.get("idx-lower", "")).isdigit() else None
@@ -136,6 +142,8 @@ def filtered_records(records, filters):
 
         filtered.append(record)
 
+    filter_records = filtered
+
     return filtered
 
 
@@ -143,9 +151,10 @@ def next_record_id(current_id, annotator):
     filters = default_filters()
     filters.update(session.get("filters", {}))
 
-    records = build_records(annotator, load_annotations(annotator))
-    visible_records = filtered_records(records, filters)
-    current_record = next((record for record in records if record["idx"] == current_id), None)
+    global all_record
+    # records = build_records(annotator, load_annotations(annotator))
+    visible_records = filtered_records(all_record, filters)
+    current_record = next((record for record in all_record if record["idx"] == current_id), None)
 
     if current_record is None:
         return None
@@ -164,6 +173,8 @@ def login():
     if request.method == "POST":
         session["annotator"] = request.form["annotator"]
         session["filters"] = default_filters()
+        global all_record
+        all_record = []
         return redirect("/records")
 
     return render_template("login.html", annotators=annotators)
@@ -181,18 +192,18 @@ def index():
     filters.update(session.get("filters", {}))
 
     # print(filters)
-
-    records = build_records(annotator, annotations)
+    global all_record
+    all_record = build_records(annotator, annotations)
 
     # records = [x for x in records if x["model"]=="thinkrepair" and x["bug_id"] in EQV_5]
-    num_annotated = len([x for x in records if x["annotated"]])
-    progress = 0 if len(records) == 0 else num_annotated / len(records) * 100
+    num_annotated = len([x for x in all_record if x["annotated"]])
+    progress = 0 if len(all_record) == 0 else num_annotated / len(all_record) * 100
     progress = round(progress, 2)
 
     return render_template(
         "index.html",
-        records=records,
-        total=len(records),
+        records=all_record,
+        total=len(all_record),
         progress=progress,
         annotated=num_annotated,
         annotator=annotator,
