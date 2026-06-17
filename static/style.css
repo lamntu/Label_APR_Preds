@@ -785,12 +785,13 @@ table.pred-list {
 
 .decision-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 10px;
   margin-top: 4px;
 }
 
 .save-button,
+.next-button,
 .back-to-list-button {
   width: 100%;
 }

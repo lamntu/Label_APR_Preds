@@ -304,9 +304,11 @@ async function submitLabel() {
             throw new Error("Save failed");
         }
 
-        let result = await response.json();
-        saveStatus.textContent = result.nextUrl ? "Saved. Opening next record..." : "Saved. Returning to list...";
-        window.location = result.nextUrl || '/records';
+        await response.json();
+
+        saveButton.disabled = false;
+        saveButton.textContent = "Save";
+        saveStatus.textContent = "Saved.";
     } catch (error) {
         saveButton.disabled = false;
         saveButton.textContent = "Save";
@@ -316,4 +318,21 @@ async function submitLabel() {
 
 function clearSaveStatus() {
     document.getElementById("save-status").textContent = "";
+}
+
+function goToNextRecord() {
+    let nextUrl = getNextRecordUrl();
+    window.location.assign(nextUrl || '/records');
+}
+
+function getNextRecordUrl() {
+    let queueUrls = JSON.parse(sessionStorage.getItem("annotationQueueUrls") || "[]");
+    let currentUrl = `/annotate/${recordId}`;
+    let currentIndex = queueUrls.indexOf(currentUrl);
+
+    if (currentIndex === -1) {
+        return "";
+    }
+
+    return queueUrls[currentIndex + 1] || "";
 }

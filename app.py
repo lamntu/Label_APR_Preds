@@ -17,9 +17,6 @@ ANNOTATION_DIR = "data"
 
 dataset = pd.read_csv(DATA_PATH)
 
-all_record = []
-filter_records = []
-
 DEFAULT_FILTERS = {
     "search": "",
     "idx-lower": "",
@@ -112,60 +109,6 @@ def build_records(annotator, annotations):
     return records
 
 
-def filtered_records(records, filters):
-    global filter_records
-    if len(filter_records) != 0:
-        return filter_records
-    filtered = []
-    search_filter = filters.get("search", "").strip().lower()
-    idx_lower = int(filters["idx-lower"]) if str(filters.get("idx-lower", "")).isdigit() else None
-    idx_upper = int(filters["idx-upper"]) if str(filters.get("idx-upper", "")).isdigit() else None
-    status_filter = filters.get("status", "all")
-
-    for record in records:
-        if idx_lower is not None and record["row_num"] < idx_lower:
-            continue
-        if idx_upper is not None and record["row_num"] > idx_upper:
-            continue
-        if search_filter and search_filter not in f"{record['bug_id']} {record['dataset']} {record['model']}".lower():
-            continue
-        if status_filter == "pending" and record["annotated"]:
-            continue
-        if status_filter == "annotated" and not record["annotated"]:
-            continue
-        if record["dataset"] not in filters.get("datasets", []):
-            continue
-        if record["model"] not in filters.get("systems", []):
-            continue
-        if record["label"] not in filters.get("labels", []):
-            continue
-
-        filtered.append(record)
-
-    filter_records = filtered
-
-    return filtered
-
-
-def next_record_id(current_id, annotator):
-    filters = default_filters()
-    filters.update(session.get("filters", {}))
-
-    global all_record
-    # records = build_records(annotator, load_annotations(annotator))
-    visible_records = filtered_records(all_record, filters)
-    current_record = next((record for record in all_record if record["idx"] == current_id), None)
-
-    if current_record is None:
-        return None
-
-    for record in visible_records:
-        if record["row_num"] > current_record["row_num"]:
-            return record["idx"]
-
-    return None
-
-
 @app.route("/", methods=["GET", "POST"])
 def login():
     annotators = ["Lam", "Chenxi", "Haoye", "Xiaoning", "Aldeida", "Neelofar"]
@@ -173,8 +116,6 @@ def login():
     if request.method == "POST":
         session["annotator"] = request.form["annotator"]
         session["filters"] = default_filters()
-        global all_record
-        all_record = []
         return redirect("/records")
 
     return render_template("login.html", annotators=annotators)
@@ -192,18 +133,17 @@ def index():
     filters.update(session.get("filters", {}))
 
     # print(filters)
-    global all_record
-    all_record = build_records(annotator, annotations)
+    records = build_records(annotator, annotations)
 
     # records = [x for x in records if x["model"]=="thinkrepair" and x["bug_id"] in EQV_5]
-    num_annotated = len([x for x in all_record if x["annotated"]])
-    progress = 0 if len(all_record) == 0 else num_annotated / len(all_record) * 100
+    num_annotated = len([x for x in records if x["annotated"]])
+    progress = 0 if len(records) == 0 else num_annotated / len(records) * 100
     progress = round(progress, 2)
 
     return render_template(
         "index.html",
-        records=all_record,
-        total=len(all_record),
+        records=records,
+        total=len(records),
         progress=progress,
         annotated=num_annotated,
         annotator=annotator,
@@ -357,10 +297,7 @@ def submit():
         exec_time=exec_time
     )
 
-    next_id = next_record_id(data["id"], session["annotator"])
-    next_url = "" if next_id is None else f"/annotate/{next_id}"
-
-    return {"status": "saved", "nextUrl": next_url}
+    return {"status": "saved"}
 
 
 @app.route("/set_filters", methods=["POST"])

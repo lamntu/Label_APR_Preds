@@ -171,6 +171,15 @@ function applyFilters() {
     });
 
     applyProgress()
+    persistVisibleQueue()
+}
+
+function persistVisibleQueue() {
+    let visibleQueueUrls = Array.from(document.querySelectorAll(".pred-list tbody tr[data-href]"))
+        .filter(row => row.style.display !== "none")
+        .map(row => row.dataset.href);
+
+    sessionStorage.setItem("annotationQueueUrls", JSON.stringify(visibleQueueUrls));
 }
 
 function collectFilters() {
