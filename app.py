@@ -336,13 +336,13 @@ def submit():
         comment=data["comment"],
         exec_time=exec_time
     )
-    upsert_remembered_annotation(
-        record_id=data["id"],
-        annotator=session["annotator"],
-        label=data["label"],
-        confidence=data["confidence"],
-        comment=data["comment"]
-    )
+    # upsert_remembered_annotation(
+    #     record_id=data["id"],
+    #     annotator=session["annotator"],
+    #     label=data["label"],
+    #     confidence=data["confidence"],
+    #     comment=data["comment"]
+    # )
 
     return {"status": "saved"}
 
