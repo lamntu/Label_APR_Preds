@@ -71,7 +71,52 @@ RWB_BATCHES = {
     "Chenxi": ["Jsoup-94", "Jsoup-97", "Jsoup-98", "Lang-600", "Lang-606", "Lang-609", "Lang-611", "Lang-613", "Lang-614"]
 }
 
-ggsheet_annotations = []
+ANNOTATION_CACHE_TTL_SECONDS = 300
+annotation_cache = {}
+
+
+def same_record_id(left, right):
+    return int(left) == int(right)
+
+
+def get_cached_annotations(annotator, force_refresh=False):
+    cached = annotation_cache.get(annotator)
+    now = time.time()
+
+    if not force_refresh and cached and now - cached["loaded_at"] < ANNOTATION_CACHE_TTL_SECONDS:
+        return cached["records"]
+
+    records = load_annotations(annotator)
+    annotation_cache[annotator] = {
+        "loaded_at": now,
+        "records": records
+    }
+    return records
+
+
+def upsert_cached_annotation(record_id, annotator, label, confidence, comment):
+    cached = annotation_cache.setdefault(annotator, {
+        "loaded_at": time.time(),
+        "records": []
+    })
+
+    new_record = {
+        "id": int(record_id),
+        "annotator": annotator,
+        "label": label,
+        "confidence": int(confidence),
+        "comment": comment
+    }
+
+    for i, record in enumerate(cached["records"]):
+        if same_record_id(record["id"], record_id):
+            cached["records"][i] = {**record, **new_record}
+            cached["loaded_at"] = time.time()
+            return
+
+    cached["records"].append(new_record)
+    cached["loaded_at"] = time.time()
+
 
 def normalize_dataset(dataset_name):
     if str(dataset_name).startswith("d"):
@@ -82,7 +127,7 @@ def normalize_dataset(dataset_name):
 
 
 def build_records(annotator, annotations):
-    annotated_ids = {x['id']: x for x in annotations}
+    annotated_ids = {int(x['id']): x for x in annotations}
     records = []
 
     for i, row in dataset.iterrows():
@@ -92,13 +137,13 @@ def build_records(annotator, annotations):
                 or (annotator in RWB_BATCHES and bug_dataset == "rwb" and row["bug_id"] not in RWB_BATCHES[annotator]):
             continue
 
-        label = "" if row["id"] not in annotated_ids else annotated_ids[row["id"]]["label"]
+        label = "" if int(row["id"]) not in annotated_ids else annotated_ids[int(row["id"])]["label"]
         records.append({
             "idx": int(row["id"]),
             "bug_id": row["bug_id"],
             "model": row["model"],
             "dataset": bug_dataset,
-            "annotated": row["id"] in annotated_ids,
+            "annotated": int(row["id"]) in annotated_ids,
             "label": label
         })
 
@@ -128,14 +173,13 @@ def index():
         return redirect("/")
 
     annotator = session["annotator"]
-    global ggsheet_annotations
-    ggsheet_annotations = load_annotations(annotator)
+    annotations = get_cached_annotations(annotator)
 
     filters = default_filters()
     filters.update(session.get("filters", {}))
 
     # print(filters)
-    records = build_records(annotator, ggsheet_annotations)
+    records = build_records(annotator, annotations)
 
     # records = [x for x in records if x["model"]=="thinkrepair" and x["bug_id"] in EQV_5]
     num_annotated = len([x for x in records if x["annotated"]])
@@ -204,8 +248,8 @@ def annotate(idx):
         row = dataset.iloc[idx]
 
     annotator = session["annotator"]
-    global ggsheet_annotations
-    existing = [x for x in ggsheet_annotations if x["id"] == row["id"]]
+    annotations = get_cached_annotations(annotator)
+    existing = [x for x in annotations if same_record_id(x["id"], row["id"])]
 
     label = "unsure"
     confidence = 5
@@ -296,6 +340,13 @@ def submit():
         confidence=data["confidence"],
         comment=data["comment"],
         exec_time=exec_time
+    )
+    upsert_cached_annotation(
+        record_id=data["id"],
+        annotator=session["annotator"],
+        label=data["label"],
+        confidence=data["confidence"],
+        comment=data["comment"]
     )
 
     return {"status": "saved"}
