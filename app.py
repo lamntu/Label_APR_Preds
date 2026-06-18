@@ -71,36 +71,33 @@ RWB_BATCHES = {
     "Chenxi": ["Jsoup-94", "Jsoup-97", "Jsoup-98", "Lang-600", "Lang-606", "Lang-609", "Lang-611", "Lang-613", "Lang-614"]
 }
 
-ANNOTATION_CACHE_TTL_SECONDS = 300
-annotation_cache = {}
-
-
 def same_record_id(left, right):
     return int(left) == int(right)
 
 
-def get_cached_annotations(annotator, force_refresh=False):
-    cached = annotation_cache.get(annotator)
-    now = time.time()
-
-    if not force_refresh and cached and now - cached["loaded_at"] < ANNOTATION_CACHE_TTL_SECONDS:
-        return cached["records"]
-
-    records = load_annotations(annotator)
-    annotation_cache[annotator] = {
-        "loaded_at": now,
-        "records": records
-    }
-    return records
+session_annotations = {}
 
 
-def upsert_cached_annotation(record_id, annotator, label, confidence, comment):
-    cached = annotation_cache.setdefault(annotator, {
-        "loaded_at": time.time(),
-        "records": []
-    })
+def remember_annotations(annotator, annotations):
+    session_annotations[annotator] = annotations
 
-    new_record = {
+
+def current_annotations(annotator):
+    if annotator not in session_annotations:
+        session_annotations[annotator] = load_annotations(annotator)
+    return session_annotations[annotator]
+
+
+def find_remembered_annotation(record_id, annotator):
+    return next(
+        (annotation for annotation in current_annotations(annotator) if same_record_id(annotation["id"], record_id)),
+        None
+    )
+
+
+def upsert_remembered_annotation(record_id, annotator, label, confidence, comment):
+    annotations = current_annotations(annotator)
+    new_annotation = {
         "id": int(record_id),
         "annotator": annotator,
         "label": label,
@@ -108,14 +105,12 @@ def upsert_cached_annotation(record_id, annotator, label, confidence, comment):
         "comment": comment
     }
 
-    for i, record in enumerate(cached["records"]):
-        if same_record_id(record["id"], record_id):
-            cached["records"][i] = {**record, **new_record}
-            cached["loaded_at"] = time.time()
+    for i, annotation in enumerate(annotations):
+        if same_record_id(annotation["id"], record_id):
+            annotations[i] = {**annotation, **new_annotation}
             return
 
-    cached["records"].append(new_record)
-    cached["loaded_at"] = time.time()
+    annotations.append(new_annotation)
 
 
 def normalize_dataset(dataset_name):
@@ -173,7 +168,8 @@ def index():
         return redirect("/")
 
     annotator = session["annotator"]
-    annotations = get_cached_annotations(annotator)
+    annotations = load_annotations(annotator)
+    remember_annotations(annotator, annotations)
 
     filters = default_filters()
     filters.update(session.get("filters", {}))
@@ -248,18 +244,17 @@ def annotate(idx):
         row = dataset.iloc[idx]
 
     annotator = session["annotator"]
-    annotations = get_cached_annotations(annotator)
-    existing = [x for x in annotations if same_record_id(x["id"], row["id"])]
+    existing = find_remembered_annotation(row["id"], annotator)
 
     label = "unsure"
     confidence = 5
     comment = ""
-    annotated = len(existing) > 0
+    annotated = existing is not None
 
     if annotated:
-        label = existing[0]["label"]
-        confidence = existing[0]["confidence"]
-        comment = existing[0]["comment"]
+        label = existing["label"]
+        confidence = existing["confidence"]
+        comment = existing["comment"]
         if not isinstance(comment, str) or comment == None:
             comment = ""
 
@@ -341,7 +336,7 @@ def submit():
         comment=data["comment"],
         exec_time=exec_time
     )
-    upsert_cached_annotation(
+    upsert_remembered_annotation(
         record_id=data["id"],
         annotator=session["annotator"],
         label=data["label"],
