@@ -95,22 +95,22 @@ def find_remembered_annotation(record_id, annotator):
     )
 
 
-def upsert_remembered_annotation(record_id, annotator, label, confidence, comment):
-    annotations = current_annotations(annotator)
-    new_annotation = {
-        "id": int(record_id),
-        "annotator": annotator,
-        "label": label,
-        "confidence": int(confidence),
-        "comment": comment
-    }
-
-    for i, annotation in enumerate(annotations):
-        if same_record_id(annotation["id"], record_id):
-            annotations[i] = {**annotation, **new_annotation}
-            return
-
-    annotations.append(new_annotation)
+# def upsert_remembered_annotation(record_id, annotator, label, confidence, comment):
+#     annotations = current_annotations(annotator)
+#     new_annotation = {
+#         "id": int(record_id),
+#         "annotator": annotator,
+#         "label": label,
+#         "confidence": int(confidence),
+#         "comment": comment
+#     }
+#
+#     for i, annotation in enumerate(annotations):
+#         if same_record_id(annotation["id"], record_id):
+#             annotations[i] = {**annotation, **new_annotation}
+#             return
+#
+#     annotations.append(new_annotation)
 
 
 def normalize_dataset(dataset_name):
@@ -168,7 +168,9 @@ def index():
         return redirect("/")
 
     annotator = session["annotator"]
+    start_time = time.time()
     annotations = load_annotations(annotator)
+    print("Load", time.time() - start_time)
     remember_annotations(annotator, annotations)
 
     filters = default_filters()
@@ -242,6 +244,14 @@ def annotate(idx):
         row = matching_rows.iloc[0]
     else:
         row = dataset.iloc[idx]
+
+    if row["model"] == "reinfix":
+        bug_id = row["bug_id"]
+        if bug_id in ["Closure-28", "Chart-23"]:
+            with open(f"data/{bug_id}_buggy.java", "r") as f:
+                row["buggy"] = f.read()
+            with open(f"data/{bug_id}_fix.java", "r") as f:
+                row["fix"] = f.read()
 
     annotator = session["annotator"]
     existing = find_remembered_annotation(row["id"], annotator)
