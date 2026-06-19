@@ -536,6 +536,25 @@ table.pred-list {
   margin-bottom: 0;
 }
 
+.inline-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.inline-check input {
+  width: auto;
+  min-height: 0;
+}
+
 .bug-info-heading {
   margin-bottom: 14px;
 }
@@ -796,9 +815,12 @@ table.pred-list {
   width: 100%;
 }
 
-.save-button[disabled] {
+.save-button[disabled],
+.next-button[disabled],
+.back-to-list-button.is-disabled {
   cursor: progress;
   opacity: 0.68;
+  pointer-events: none;
 }
 
 .save-status {

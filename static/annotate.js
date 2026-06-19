@@ -1,9 +1,10 @@
 window.onload = function() {
-    renderDiff(buggy, devfix, "devdiff")
+    renderDeveloperDiff()
     renderDiff(buggy, llmfix, "llmdiff")
     initializeSliders()
     initializeBugReportJson()
     initializeTutorial()
+    document.getElementById("ignore-dev-whitespace").addEventListener("change", renderDeveloperDiff);
 
     document.querySelectorAll(".collapsible").forEach(btn => {
         btn.addEventListener("click", function() {
@@ -20,6 +21,11 @@ window.onload = function() {
     });
 
     document.getElementById("comment").addEventListener("input", clearSaveStatus);
+}
+
+function renderDeveloperDiff() {
+    let shouldIgnoreWhitespace = document.getElementById("ignore-dev-whitespace").checked;
+    renderDiff(buggy, devfix, "devdiff", {ignoreWhitespace: shouldIgnoreWhitespace});
 }
 
 const labelValues = ["incorrect", "unsure", "correct"];
@@ -254,12 +260,15 @@ function decodeHtml(html) {
     return txt.value;
 }
 
-function renderDiff(oldCode, newCode, container) {
+function renderDiff(oldCode, newCode, container, options = {}) {
     let diff = newCode.startsWith("diff --git") ? newCode : Diff.createTwoFilesPatch(
         "Buggy",
         "Fixed",
         oldCode,
-        newCode
+        newCode,
+        "",
+        "",
+        options
     )
 
     diff = decodeHtml(diff)
@@ -282,6 +291,7 @@ async function submitLabel() {
 
     saveButton.disabled = true;
     saveButton.textContent = "Saving";
+    setNavigationDisabled(true);
     saveStatus.textContent = "";
 
     try {
@@ -308,16 +318,27 @@ async function submitLabel() {
 
         saveButton.disabled = false;
         saveButton.textContent = "Save";
+        setNavigationDisabled(false);
         saveStatus.textContent = "Saved.";
     } catch (error) {
         saveButton.disabled = false;
         saveButton.textContent = "Save";
+        setNavigationDisabled(false);
         saveStatus.textContent = "Could not save. Please try again.";
     }
 }
 
 function clearSaveStatus() {
     document.getElementById("save-status").textContent = "";
+}
+
+function setNavigationDisabled(disabled) {
+    let nextButton = document.getElementById("next-button");
+    let fullListButton = document.querySelector(".back-to-list-button");
+
+    nextButton.disabled = disabled;
+    fullListButton.classList.toggle("is-disabled", disabled);
+    fullListButton.setAttribute("aria-disabled", String(disabled));
 }
 
 function goToNextRecord() {
