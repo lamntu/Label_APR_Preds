@@ -71,11 +71,8 @@
   <span class="option-row" id="filter-dataset">
     <label><input type="checkbox" value="defects4j" {% if "defects4j" in filters["datasets"] %}checked{% endif %}> defects4j</label>
     <label><input type="checkbox" value="rwb" {% if "rwb" in filters["datasets"] %}checked{% endif %}> rwb</label>
-<!--    <label><input type="checkbox" value="swebench" disabled> swebench</label>-->
     <label><input type="checkbox" value="swebench" {% if "swebench" in filters["datasets"] %}checked{% endif %}> swebench</label>
-<!--    <label><input type="checkbox" value="evalrepair-java" disabled> evalrepair-java</label>-->
     <label><input type="checkbox" value="evalrepair-java" {% if "evalrepair-java" in filters["datasets"] %}checked{% endif %}> evalrepair-java</label>
-<!--    <label><input type="checkbox" value="evalrepair-cpp" disabled> evalrepair-cpp</label>-->
     <label><input type="checkbox" value="evalrepair-cpp" {% if "evalrepair-cpp" in filters["datasets"] %}checked{% endif %}> evalrepair-cpp</label>
   </span>
   </div>
@@ -107,17 +104,10 @@
 <thead>
 <tr>
 <th>#</th>
-<!--<th>Record-ID</th>-->
 <th>Bug-ID</th>
 <th>Dataset</th>
 <th>APR System</th>
-<th>Status
-<!--<label class="switch">-->
-<!--  <input type="checkbox" id="pendingToggle" onchange="togglePendingFilter()" {% if show_pending_only %}checked{% endif %}>-->
-<!--  <span class="slider"></span>-->
-<!--</label>-->
-<!--<span id="toggleLabel">Pending Only</span>-->
-</th>
+<th>Status</th>
 <th>Label</th>
 <th>Open</th>
 </tr>
@@ -129,7 +119,6 @@
 <tr class="{% if r.annotated %}annotated{% else %}pending{% endif %}" data-href="/annotate/{{r.idx}}" tabindex="0" aria-label="Open annotation for {{r.bug_id}}">
 
 <td>{{r.row_num}}</td>
-<!--<td>{{r.idx}}</td>-->
 <td><strong>{{r.bug_id}}</strong></td>
 <td>{{r.dataset}}</td>
 <td>{{r.model}}</td>

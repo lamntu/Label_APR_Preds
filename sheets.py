@@ -1,3 +1,5 @@
+import os
+
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
@@ -5,13 +7,13 @@ from datetime import datetime
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 creds = Credentials.from_service_account_file(
-    "key/labelaprpred-bc2be5b419a3.json",
+    os.environ['CREDS_FILE_PATH'],
     scopes=SCOPES
 )
 
 client = gspread.authorize(creds)
 
-sheet = client.open_by_key('1wb7nW4vksC7wQQGhD5oMWuVogB-kEi-WVlJ2WuWA4m4').sheet1
+sheet = client.open_by_key(os.environ['GSPREAD_LINK']).sheet1
 
 def save_annotation(record_id, annotator, label, confidence, comment, exec_time):
     rows = sheet.get_all_values()
