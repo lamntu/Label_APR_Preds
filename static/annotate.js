@@ -1,10 +1,14 @@
 window.onload = function() {
+    initializeDeveloperDiffWhitespace()
     renderDeveloperDiff()
     renderDiff(buggy, llmfix, "llmdiff")
     initializeSliders()
     initializeBugReportJson()
     initializeTutorial()
-    document.getElementById("ignore-dev-whitespace").addEventListener("change", renderDeveloperDiff);
+    document.getElementById("ignore-dev-whitespace").addEventListener("change", function() {
+        localStorage.setItem("ignoreDeveloperDiffWhitespace", String(this.checked));
+        renderDeveloperDiff();
+    });
 
     document.querySelectorAll(".collapsible").forEach(btn => {
         btn.addEventListener("click", function() {
@@ -21,6 +25,13 @@ window.onload = function() {
     });
 
     document.getElementById("comment").addEventListener("input", clearSaveStatus);
+}
+
+function initializeDeveloperDiffWhitespace() {
+    let savedPreference = localStorage.getItem("ignoreDeveloperDiffWhitespace");
+    if (savedPreference !== null) {
+        document.getElementById("ignore-dev-whitespace").checked = savedPreference === "true";
+    }
 }
 
 function renderDeveloperDiff() {
